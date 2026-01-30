@@ -1,0 +1,20 @@
+name: 'haddock_test_data'
+version: '1.0.0'
+config-version: 2
+
+profile: 'haddock_test_data'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+seeds:
+  haddock_test_data:
+    +schema: main

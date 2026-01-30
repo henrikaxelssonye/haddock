@@ -1,0 +1,13 @@
+
+    
+    
+    
+    create table "test_data"."main_main"."sales" ("ID" integer,"CustomerID" integer,"ProductID" integer,"Quantity" integer,"SaleDate" date)
+  ;
+    -- dbt seed --
+    
+          COPY "test_data"."main_main"."sales" FROM 'C:\kund\haddock\dbt_project\seeds\sales.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ',')
+        
+
+;
+  

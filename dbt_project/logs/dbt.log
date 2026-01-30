@@ -1,0 +1,572 @@
+[0m11:08:49.067502 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A17E55DC0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A17E55160>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A17E552B0>]}
+
+
+============================== 11:08:49.067502 | cb154be9-199e-4ce5-bec2-9a732329b02f ==============================
+[0m11:08:49.067502 [info ] [MainThread]: Running with dbt=1.8.7
+[0m11:08:49.067502 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': '.', 'debug': 'False', 'warn_error': 'None', 'log_path': 'C:\\kund\\haddock\\dbt_project\\logs', 'version_check': 'True', 'fail_fast': 'False', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'None', 'quiet': 'False', 'no_print': 'None', 'log_format': 'default', 'invocation_command': 'dbt seed --profiles-dir .', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'introspect': 'True', 'target_path': 'None', 'static_parser': 'True', 'send_anonymous_usage_stats': 'True'}
+[0m11:08:49.631257 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A182A8530>]}
+[0m11:08:49.699684 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A17282960>]}
+[0m11:08:49.700366 [info ] [MainThread]: Registered adapter: duckdb=1.10.0
+[0m11:08:49.733589 [debug] [MainThread]: checksum: 4af21dafb485259c48497ac86b711ddb1982f3d0f1c0ca4e09356de488b753c0, vars: {}, profile: , target: , version: 1.8.7
+[0m11:08:49.733589 [info ] [MainThread]: Unable to do partial parsing because saved manifest not found. Starting full parse.
+[0m11:08:49.733589 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A172CCC20>]}
+[0m11:08:52.475052 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A19622F00>]}
+[0m11:08:52.617386 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A19933530>]}
+[0m11:08:52.617386 [info ] [MainThread]: Found 3 models, 4 seeds, 438 macros
+[0m11:08:52.617386 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A1995E6C0>]}
+[0m11:08:52.617386 [info ] [MainThread]: 
+[0m11:08:52.617386 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m11:08:52.633121 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_test_data'
+[0m11:08:56.124325 [debug] [ThreadPool]: Using duckdb connection "list_test_data"
+[0m11:08:56.125335 [debug] [ThreadPool]: On list_test_data: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "list_test_data"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"test_data"'
+    
+  
+  
+[0m11:08:56.125335 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m11:08:56.171050 [debug] [ThreadPool]: SQL status: OK in 0.045 seconds
+[0m11:08:56.173053 [debug] [ThreadPool]: On list_test_data: Close
+[0m11:08:56.173053 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_test_data, now create_test_data_main_main)
+[0m11:08:56.175052 [debug] [ThreadPool]: Creating schema "database: "test_data"
+schema: "main_main"
+"
+[0m11:08:56.184073 [debug] [ThreadPool]: Using duckdb connection "create_test_data_main_main"
+[0m11:08:56.185061 [debug] [ThreadPool]: On create_test_data_main_main: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "create_test_data_main_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='test_data'
+        and type='sqlite'
+    
+  
+[0m11:08:56.185061 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m11:08:56.187054 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m11:08:56.189054 [debug] [ThreadPool]: Using duckdb connection "create_test_data_main_main"
+[0m11:08:56.189054 [debug] [ThreadPool]: On create_test_data_main_main: BEGIN
+[0m11:08:56.190053 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m11:08:56.191054 [debug] [ThreadPool]: Using duckdb connection "create_test_data_main_main"
+[0m11:08:56.191054 [debug] [ThreadPool]: On create_test_data_main_main: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "create_test_data_main_main"} */
+
+    
+    
+        create schema if not exists "test_data"."main_main"
+    
+[0m11:08:56.193050 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m11:08:56.195054 [debug] [ThreadPool]: On create_test_data_main_main: COMMIT
+[0m11:08:56.196056 [debug] [ThreadPool]: Using duckdb connection "create_test_data_main_main"
+[0m11:08:56.196056 [debug] [ThreadPool]: On create_test_data_main_main: COMMIT
+[0m11:08:56.200052 [debug] [ThreadPool]: SQL status: OK in 0.004 seconds
+[0m11:08:56.201059 [debug] [ThreadPool]: On create_test_data_main_main: Close
+[0m11:08:56.203053 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_test_data_main_main'
+[0m11:08:56.209071 [debug] [ThreadPool]: Using duckdb connection "list_test_data_main_main"
+[0m11:08:56.209071 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_test_data_main'
+[0m11:08:56.210075 [debug] [ThreadPool]: On list_test_data_main_main: BEGIN
+[0m11:08:56.212074 [debug] [ThreadPool]: Using duckdb connection "list_test_data_main"
+[0m11:08:56.212074 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m11:08:56.213073 [debug] [ThreadPool]: On list_test_data_main: BEGIN
+[0m11:08:56.214062 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m11:08:56.214062 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m11:08:56.215064 [debug] [ThreadPool]: Using duckdb connection "list_test_data_main_main"
+[0m11:08:56.215064 [debug] [ThreadPool]: On list_test_data_main_main: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "list_test_data_main_main"} */
+select
+      'test_data' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main_main'
+    and lower(table_catalog) = 'test_data'
+  
+[0m11:08:56.216078 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m11:08:56.217056 [debug] [ThreadPool]: Using duckdb connection "list_test_data_main"
+[0m11:08:56.217056 [debug] [ThreadPool]: On list_test_data_main: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "list_test_data_main"} */
+select
+      'test_data' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'test_data'
+  
+[0m11:08:56.250319 [debug] [ThreadPool]: SQL status: OK in 0.034 seconds
+[0m11:08:56.250319 [debug] [ThreadPool]: SQL status: OK in 0.032 seconds
+[0m11:08:56.252310 [debug] [ThreadPool]: On list_test_data_main_main: ROLLBACK
+[0m11:08:56.253327 [debug] [ThreadPool]: On list_test_data_main: ROLLBACK
+[0m11:08:56.271306 [debug] [ThreadPool]: Failed to rollback 'list_test_data_main_main'
+[0m11:08:56.273300 [debug] [ThreadPool]: Failed to rollback 'list_test_data_main'
+[0m11:08:56.274295 [debug] [ThreadPool]: On list_test_data_main_main: Close
+[0m11:08:56.275308 [debug] [ThreadPool]: On list_test_data_main: Close
+[0m11:08:56.276299 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A19D8A540>]}
+[0m11:08:56.278311 [debug] [MainThread]: Using duckdb connection "master"
+[0m11:08:56.279306 [debug] [MainThread]: On master: BEGIN
+[0m11:08:56.279306 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m11:08:56.280304 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m11:08:56.281319 [debug] [MainThread]: On master: COMMIT
+[0m11:08:56.281319 [debug] [MainThread]: Using duckdb connection "master"
+[0m11:08:56.282299 [debug] [MainThread]: On master: COMMIT
+[0m11:08:56.283299 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m11:08:56.284300 [debug] [MainThread]: On master: Close
+[0m11:08:56.285308 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m11:08:56.286303 [info ] [MainThread]: 
+[0m11:08:56.294295 [debug] [Thread-1 (]: Began running node seed.haddock_test_data.customers
+[0m11:08:56.295302 [debug] [Thread-2 (]: Began running node seed.haddock_test_data.products
+[0m11:08:56.296297 [debug] [Thread-3 (]: Began running node seed.haddock_test_data.regions
+[0m11:08:56.297298 [debug] [Thread-4 (]: Began running node seed.haddock_test_data.sales
+[0m11:08:56.298297 [info ] [Thread-1 (]: 1 of 4 START seed file main_main.customers ..................................... [RUN]
+[0m11:08:56.300301 [info ] [Thread-2 (]: 2 of 4 START seed file main_main.products ...................................... [RUN]
+[0m11:08:56.301298 [info ] [Thread-3 (]: 3 of 4 START seed file main_main.regions ....................................... [RUN]
+[0m11:08:56.302296 [info ] [Thread-4 (]: 4 of 4 START seed file main_main.sales ......................................... [RUN]
+[0m11:08:56.303295 [debug] [Thread-1 (]: Acquiring new duckdb connection 'seed.haddock_test_data.customers'
+[0m11:08:56.304295 [debug] [Thread-2 (]: Acquiring new duckdb connection 'seed.haddock_test_data.products'
+[0m11:08:56.305300 [debug] [Thread-3 (]: Acquiring new duckdb connection 'seed.haddock_test_data.regions'
+[0m11:08:56.307294 [debug] [Thread-4 (]: Acquiring new duckdb connection 'seed.haddock_test_data.sales'
+[0m11:08:56.308293 [debug] [Thread-1 (]: Began compiling node seed.haddock_test_data.customers
+[0m11:08:56.309293 [debug] [Thread-2 (]: Began compiling node seed.haddock_test_data.products
+[0m11:08:56.310294 [debug] [Thread-3 (]: Began compiling node seed.haddock_test_data.regions
+[0m11:08:56.310294 [debug] [Thread-4 (]: Began compiling node seed.haddock_test_data.sales
+[0m11:08:56.311296 [debug] [Thread-1 (]: Began executing node seed.haddock_test_data.customers
+[0m11:08:56.312299 [debug] [Thread-2 (]: Began executing node seed.haddock_test_data.products
+[0m11:08:56.313293 [debug] [Thread-3 (]: Began executing node seed.haddock_test_data.regions
+[0m11:08:56.314293 [debug] [Thread-4 (]: Began executing node seed.haddock_test_data.sales
+[0m11:08:56.360994 [debug] [Thread-2 (]: Using duckdb connection "seed.haddock_test_data.products"
+[0m11:08:56.361984 [debug] [Thread-1 (]: Using duckdb connection "seed.haddock_test_data.customers"
+[0m11:08:56.368972 [debug] [Thread-3 (]: Using duckdb connection "seed.haddock_test_data.regions"
+[0m11:08:56.369974 [debug] [Thread-2 (]: On seed.haddock_test_data.products: BEGIN
+[0m11:08:56.373000 [debug] [Thread-4 (]: Using duckdb connection "seed.haddock_test_data.sales"
+[0m11:08:56.373975 [debug] [Thread-1 (]: On seed.haddock_test_data.customers: BEGIN
+[0m11:08:56.374978 [debug] [Thread-3 (]: On seed.haddock_test_data.regions: BEGIN
+[0m11:08:56.374978 [debug] [Thread-2 (]: Opening a new connection, currently in state init
+[0m11:08:56.375975 [debug] [Thread-4 (]: On seed.haddock_test_data.sales: BEGIN
+[0m11:08:56.376971 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m11:08:56.376971 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m11:08:56.377976 [debug] [Thread-4 (]: Opening a new connection, currently in state init
+[0m11:08:56.378983 [debug] [Thread-2 (]: SQL status: OK in 0.004 seconds
+[0m11:08:56.380973 [debug] [Thread-1 (]: SQL status: OK in 0.004 seconds
+[0m11:08:56.381982 [debug] [Thread-3 (]: SQL status: OK in 0.004 seconds
+[0m11:08:56.382976 [debug] [Thread-4 (]: SQL status: OK in 0.004 seconds
+[0m11:08:56.383974 [debug] [Thread-2 (]: Using duckdb connection "seed.haddock_test_data.products"
+[0m11:08:56.383974 [debug] [Thread-1 (]: Using duckdb connection "seed.haddock_test_data.customers"
+[0m11:08:56.384977 [debug] [Thread-3 (]: Using duckdb connection "seed.haddock_test_data.regions"
+[0m11:08:56.384977 [debug] [Thread-4 (]: Using duckdb connection "seed.haddock_test_data.sales"
+[0m11:08:56.385974 [debug] [Thread-2 (]: On seed.haddock_test_data.products: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "seed.haddock_test_data.products"} */
+
+    create table "test_data"."main_main"."products" ("ID" integer,"Name" text,"Category" text,"Price" integer)
+  
+[0m11:08:56.386975 [debug] [Thread-1 (]: On seed.haddock_test_data.customers: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "seed.haddock_test_data.customers"} */
+
+    create table "test_data"."main_main"."customers" ("ID" integer,"Name" text,"Email" text,"RegionID" integer)
+  
+[0m11:08:56.387973 [debug] [Thread-3 (]: On seed.haddock_test_data.regions: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "seed.haddock_test_data.regions"} */
+
+    create table "test_data"."main_main"."regions" ("ID" integer,"Name" text,"Country" text)
+  
+[0m11:08:56.388975 [debug] [Thread-4 (]: On seed.haddock_test_data.sales: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "seed.haddock_test_data.sales"} */
+
+    create table "test_data"."main_main"."sales" ("ID" integer,"CustomerID" integer,"ProductID" integer,"Quantity" integer,"SaleDate" date)
+  
+[0m11:08:56.392976 [debug] [Thread-4 (]: SQL status: OK in 0.002 seconds
+[0m11:08:56.393975 [debug] [Thread-3 (]: SQL status: OK in 0.003 seconds
+[0m11:08:56.393975 [debug] [Thread-2 (]: SQL status: OK in 0.005 seconds
+[0m11:08:56.394984 [debug] [Thread-1 (]: SQL status: OK in 0.005 seconds
+[0m11:08:56.411997 [debug] [Thread-4 (]: Using duckdb connection "seed.haddock_test_data.sales"
+[0m11:08:56.414003 [debug] [Thread-3 (]: Using duckdb connection "seed.haddock_test_data.regions"
+[0m11:08:56.415998 [debug] [Thread-2 (]: Using duckdb connection "seed.haddock_test_data.products"
+[0m11:08:56.417987 [debug] [Thread-1 (]: Using duckdb connection "seed.haddock_test_data.customers"
+[0m11:08:56.418984 [debug] [Thread-4 (]: On seed.haddock_test_data.sales: 
+          COPY "test_data"."main_main"."sales" FROM 'C:\kund\haddock\dbt_project\seeds\sales.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ',')
+        ...
+[0m11:08:56.419982 [debug] [Thread-3 (]: On seed.haddock_test_data.regions: 
+          COPY "test_data"."main_main"."regions" FROM 'C:\kund\haddock\dbt_project\seeds\regions.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ',')
+        ...
+[0m11:08:56.419982 [debug] [Thread-2 (]: On seed.haddock_test_data.products: 
+          COPY "test_data"."main_main"."products" FROM 'C:\kund\haddock\dbt_project\seeds\products.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ',')
+        ...
+[0m11:08:56.420984 [debug] [Thread-1 (]: On seed.haddock_test_data.customers: 
+          COPY "test_data"."main_main"."customers" FROM 'C:\kund\haddock\dbt_project\seeds\customers.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ',')
+        ...
+[0m11:08:56.444289 [debug] [Thread-3 (]: SQL status: OK in 0.022 seconds
+[0m11:08:56.444289 [debug] [Thread-4 (]: SQL status: OK in 0.023 seconds
+[0m11:08:56.445294 [debug] [Thread-1 (]: SQL status: OK in 0.022 seconds
+[0m11:08:56.445294 [debug] [Thread-2 (]: SQL status: OK in 0.023 seconds
+[0m11:08:56.451290 [debug] [Thread-3 (]: Writing runtime SQL for node "seed.haddock_test_data.regions"
+[0m11:08:56.452301 [debug] [Thread-4 (]: Writing runtime SQL for node "seed.haddock_test_data.sales"
+[0m11:08:56.453314 [debug] [Thread-1 (]: Writing runtime SQL for node "seed.haddock_test_data.customers"
+[0m11:08:56.454316 [debug] [Thread-2 (]: Writing runtime SQL for node "seed.haddock_test_data.products"
+[0m11:08:56.486292 [debug] [Thread-1 (]: On seed.haddock_test_data.customers: COMMIT
+[0m11:08:56.489301 [debug] [Thread-4 (]: On seed.haddock_test_data.sales: COMMIT
+[0m11:08:56.492294 [debug] [Thread-2 (]: On seed.haddock_test_data.products: COMMIT
+[0m11:08:56.494298 [debug] [Thread-3 (]: On seed.haddock_test_data.regions: COMMIT
+[0m11:08:56.495307 [debug] [Thread-1 (]: Using duckdb connection "seed.haddock_test_data.customers"
+[0m11:08:56.496301 [debug] [Thread-4 (]: Using duckdb connection "seed.haddock_test_data.sales"
+[0m11:08:56.497296 [debug] [Thread-2 (]: Using duckdb connection "seed.haddock_test_data.products"
+[0m11:08:56.498290 [debug] [Thread-3 (]: Using duckdb connection "seed.haddock_test_data.regions"
+[0m11:08:56.499289 [debug] [Thread-1 (]: On seed.haddock_test_data.customers: COMMIT
+[0m11:08:56.500097 [debug] [Thread-4 (]: On seed.haddock_test_data.sales: COMMIT
+[0m11:08:56.500097 [debug] [Thread-2 (]: On seed.haddock_test_data.products: COMMIT
+[0m11:08:56.501260 [debug] [Thread-3 (]: On seed.haddock_test_data.regions: COMMIT
+[0m11:08:56.506266 [debug] [Thread-1 (]: SQL status: OK in 0.003 seconds
+[0m11:08:56.507270 [debug] [Thread-4 (]: SQL status: OK in 0.004 seconds
+[0m11:08:56.509262 [debug] [Thread-1 (]: On seed.haddock_test_data.customers: Close
+[0m11:08:56.510259 [debug] [Thread-2 (]: SQL status: OK in 0.008 seconds
+[0m11:08:56.511259 [debug] [Thread-3 (]: SQL status: OK in 0.008 seconds
+[0m11:08:56.512259 [debug] [Thread-4 (]: On seed.haddock_test_data.sales: Close
+[0m11:08:56.514265 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A19984470>]}
+[0m11:08:56.515285 [debug] [Thread-2 (]: On seed.haddock_test_data.products: Close
+[0m11:08:56.516654 [debug] [Thread-3 (]: On seed.haddock_test_data.regions: Close
+[0m11:08:56.517794 [debug] [Thread-4 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A19985280>]}
+[0m11:08:56.518904 [info ] [Thread-1 (]: 1 of 4 OK loaded seed file main_main.customers ................................. [[32mINSERT 8[0m in 0.21s]
+[0m11:08:56.518904 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A19986420>]}
+[0m11:08:56.520916 [info ] [Thread-4 (]: 4 of 4 OK loaded seed file main_main.sales ..................................... [[32mINSERT 18[0m in 0.21s]
+[0m11:08:56.520916 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'cb154be9-199e-4ce5-bec2-9a732329b02f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A19986780>]}
+[0m11:08:56.521945 [debug] [Thread-1 (]: Finished running node seed.haddock_test_data.customers
+[0m11:08:56.522934 [info ] [Thread-2 (]: 2 of 4 OK loaded seed file main_main.products .................................. [[32mINSERT 8[0m in 0.21s]
+[0m11:08:56.524935 [debug] [Thread-4 (]: Finished running node seed.haddock_test_data.sales
+[0m11:08:56.525945 [info ] [Thread-3 (]: 3 of 4 OK loaded seed file main_main.regions ................................... [[32mINSERT 5[0m in 0.22s]
+[0m11:08:56.526945 [debug] [Thread-2 (]: Finished running node seed.haddock_test_data.products
+[0m11:08:56.527930 [debug] [Thread-3 (]: Finished running node seed.haddock_test_data.regions
+[0m11:08:56.529939 [debug] [MainThread]: Using duckdb connection "master"
+[0m11:08:56.530933 [debug] [MainThread]: On master: BEGIN
+[0m11:08:56.530933 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m11:08:56.531949 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m11:08:56.533398 [debug] [MainThread]: On master: COMMIT
+[0m11:08:56.533726 [debug] [MainThread]: Using duckdb connection "master"
+[0m11:08:56.533726 [debug] [MainThread]: On master: COMMIT
+[0m11:08:56.534787 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m11:08:56.536322 [debug] [MainThread]: On master: Close
+[0m11:08:56.536322 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m11:08:56.536322 [debug] [MainThread]: Connection 'create_test_data_main_main' was properly closed.
+[0m11:08:56.537337 [debug] [MainThread]: Connection 'list_test_data_main_main' was properly closed.
+[0m11:08:56.537337 [debug] [MainThread]: Connection 'list_test_data_main' was properly closed.
+[0m11:08:56.537337 [debug] [MainThread]: Connection 'seed.haddock_test_data.customers' was properly closed.
+[0m11:08:56.538343 [debug] [MainThread]: Connection 'seed.haddock_test_data.products' was properly closed.
+[0m11:08:56.538343 [debug] [MainThread]: Connection 'seed.haddock_test_data.regions' was properly closed.
+[0m11:08:56.538343 [debug] [MainThread]: Connection 'seed.haddock_test_data.sales' was properly closed.
+[0m11:08:56.539333 [info ] [MainThread]: 
+[0m11:08:56.539333 [info ] [MainThread]: Finished running 4 seeds in 0 hours 0 minutes and 3.92 seconds (3.92s).
+[0m11:08:56.541337 [debug] [MainThread]: Command end result
+[0m11:08:56.582443 [info ] [MainThread]: 
+[0m11:08:56.583492 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m11:08:56.584790 [info ] [MainThread]: 
+[0m11:08:56.585880 [info ] [MainThread]: Done. PASS=4 WARN=0 ERROR=0 SKIP=0 TOTAL=4
+[0m11:08:56.586953 [debug] [MainThread]: Command `dbt seed` succeeded at 11:08:56.586953 after 7.66 seconds
+[0m11:08:56.587958 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A17A2DC10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A197BB3E0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029A174C0800>]}
+[0m11:08:56.589017 [debug] [MainThread]: Flushing usage events
+[0m11:09:11.874417 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E57586FFE0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E577EC71A0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E5749B8F50>]}
+
+
+============================== 11:09:11.878427 | 23f8c3af-9284-4472-9a6e-ab8f76590e7f ==============================
+[0m11:09:11.878427 [info ] [MainThread]: Running with dbt=1.8.7
+[0m11:09:11.879439 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': '.', 'debug': 'False', 'fail_fast': 'False', 'log_path': 'C:\\kund\\haddock\\dbt_project\\logs', 'warn_error': 'None', 'version_check': 'True', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'False', 'quiet': 'False', 'no_print': 'None', 'log_format': 'default', 'invocation_command': 'dbt run --profiles-dir .', 'static_parser': 'True', 'introspect': 'True', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'send_anonymous_usage_stats': 'True'}
+[0m11:09:12.133984 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '23f8c3af-9284-4472-9a6e-ab8f76590e7f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E57838A180>]}
+[0m11:09:12.182943 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '23f8c3af-9284-4472-9a6e-ab8f76590e7f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E57966B4D0>]}
+[0m11:09:12.186563 [info ] [MainThread]: Registered adapter: duckdb=1.10.0
+[0m11:09:12.195582 [debug] [MainThread]: checksum: 4af21dafb485259c48497ac86b711ddb1982f3d0f1c0ca4e09356de488b753c0, vars: {}, profile: , target: , version: 1.8.7
+[0m11:09:12.334253 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m11:09:12.335254 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m11:09:12.371149 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '23f8c3af-9284-4472-9a6e-ab8f76590e7f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E57967FE90>]}
+[0m11:09:12.492780 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '23f8c3af-9284-4472-9a6e-ab8f76590e7f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E57985C2C0>]}
+[0m11:09:12.492780 [info ] [MainThread]: Found 3 models, 4 seeds, 438 macros
+[0m11:09:12.494032 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '23f8c3af-9284-4472-9a6e-ab8f76590e7f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E57835E570>]}
+[0m11:09:12.497031 [info ] [MainThread]: 
+[0m11:09:12.498026 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m11:09:12.505031 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_test_data'
+[0m11:09:12.597138 [debug] [ThreadPool]: Using duckdb connection "list_test_data"
+[0m11:09:12.598137 [debug] [ThreadPool]: On list_test_data: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "list_test_data"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"test_data"'
+    
+  
+  
+[0m11:09:12.598137 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m11:09:12.628949 [debug] [ThreadPool]: SQL status: OK in 0.030 seconds
+[0m11:09:12.629954 [debug] [ThreadPool]: On list_test_data: Close
+[0m11:09:12.630950 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_test_data, now create_test_data_main)
+[0m11:09:12.631950 [debug] [ThreadPool]: Creating schema "database: "test_data"
+schema: "main"
+"
+[0m11:09:12.638952 [debug] [ThreadPool]: Using duckdb connection "create_test_data_main"
+[0m11:09:12.638952 [debug] [ThreadPool]: On create_test_data_main: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "create_test_data_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='test_data'
+        and type='sqlite'
+    
+  
+[0m11:09:12.639955 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m11:09:12.640955 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m11:09:12.642951 [debug] [ThreadPool]: Using duckdb connection "create_test_data_main"
+[0m11:09:12.642951 [debug] [ThreadPool]: On create_test_data_main: BEGIN
+[0m11:09:12.643950 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m11:09:12.643950 [debug] [ThreadPool]: Using duckdb connection "create_test_data_main"
+[0m11:09:12.643950 [debug] [ThreadPool]: On create_test_data_main: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "create_test_data_main"} */
+
+    
+    
+        create schema if not exists "test_data"."main"
+    
+[0m11:09:12.644950 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m11:09:12.646946 [debug] [ThreadPool]: On create_test_data_main: COMMIT
+[0m11:09:12.647948 [debug] [ThreadPool]: Using duckdb connection "create_test_data_main"
+[0m11:09:12.647948 [debug] [ThreadPool]: On create_test_data_main: COMMIT
+[0m11:09:12.648954 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m11:09:12.648954 [debug] [ThreadPool]: On create_test_data_main: Close
+[0m11:09:12.650965 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_test_data_main'
+[0m11:09:12.663476 [debug] [ThreadPool]: Using duckdb connection "list_test_data_main"
+[0m11:09:12.664492 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_test_data_main_main'
+[0m11:09:12.664492 [debug] [ThreadPool]: On list_test_data_main: BEGIN
+[0m11:09:12.667489 [debug] [ThreadPool]: Using duckdb connection "list_test_data_main_main"
+[0m11:09:12.668493 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m11:09:12.668493 [debug] [ThreadPool]: On list_test_data_main_main: BEGIN
+[0m11:09:12.670490 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m11:09:12.670490 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m11:09:12.671489 [debug] [ThreadPool]: Using duckdb connection "list_test_data_main"
+[0m11:09:12.672491 [debug] [ThreadPool]: SQL status: OK in 0.003 seconds
+[0m11:09:12.673486 [debug] [ThreadPool]: On list_test_data_main: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "list_test_data_main"} */
+select
+      'test_data' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'test_data'
+  
+[0m11:09:12.673486 [debug] [ThreadPool]: Using duckdb connection "list_test_data_main_main"
+[0m11:09:12.674491 [debug] [ThreadPool]: On list_test_data_main_main: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "connection_name": "list_test_data_main_main"} */
+select
+      'test_data' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main_main'
+    and lower(table_catalog) = 'test_data'
+  
+[0m11:09:12.697484 [debug] [ThreadPool]: SQL status: OK in 0.023 seconds
+[0m11:09:12.698486 [debug] [ThreadPool]: SQL status: OK in 0.022 seconds
+[0m11:09:12.699487 [debug] [ThreadPool]: On list_test_data_main: ROLLBACK
+[0m11:09:12.702483 [debug] [ThreadPool]: On list_test_data_main_main: ROLLBACK
+[0m11:09:12.703482 [debug] [ThreadPool]: Failed to rollback 'list_test_data_main'
+[0m11:09:12.705486 [debug] [ThreadPool]: Failed to rollback 'list_test_data_main_main'
+[0m11:09:12.705486 [debug] [ThreadPool]: On list_test_data_main: Close
+[0m11:09:12.706485 [debug] [ThreadPool]: On list_test_data_main_main: Close
+[0m11:09:12.708486 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '23f8c3af-9284-4472-9a6e-ab8f76590e7f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E575E11FD0>]}
+[0m11:09:12.709482 [debug] [MainThread]: Using duckdb connection "master"
+[0m11:09:12.709482 [debug] [MainThread]: On master: BEGIN
+[0m11:09:12.710482 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m11:09:12.710482 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m11:09:12.711484 [debug] [MainThread]: On master: COMMIT
+[0m11:09:12.711484 [debug] [MainThread]: Using duckdb connection "master"
+[0m11:09:12.711484 [debug] [MainThread]: On master: COMMIT
+[0m11:09:12.712484 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m11:09:12.712484 [debug] [MainThread]: On master: Close
+[0m11:09:12.713484 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m11:09:12.714497 [info ] [MainThread]: 
+[0m11:09:12.719483 [debug] [Thread-1 (]: Began running node model.haddock_test_data.customer_totals
+[0m11:09:12.720486 [debug] [Thread-2 (]: Began running node model.haddock_test_data.product_totals
+[0m11:09:12.720486 [debug] [Thread-3 (]: Began running node model.haddock_test_data.sales_summary
+[0m11:09:12.721484 [info ] [Thread-1 (]: 1 of 3 START sql view model main.customer_totals ............................... [RUN]
+[0m11:09:12.722483 [info ] [Thread-2 (]: 2 of 3 START sql view model main.product_totals ................................ [RUN]
+[0m11:09:12.723482 [info ] [Thread-3 (]: 3 of 3 START sql view model main.sales_summary ................................. [RUN]
+[0m11:09:12.725487 [debug] [Thread-1 (]: Acquiring new duckdb connection 'model.haddock_test_data.customer_totals'
+[0m11:09:12.725487 [debug] [Thread-2 (]: Acquiring new duckdb connection 'model.haddock_test_data.product_totals'
+[0m11:09:12.726482 [debug] [Thread-3 (]: Acquiring new duckdb connection 'model.haddock_test_data.sales_summary'
+[0m11:09:12.726482 [debug] [Thread-1 (]: Began compiling node model.haddock_test_data.customer_totals
+[0m11:09:12.727482 [debug] [Thread-2 (]: Began compiling node model.haddock_test_data.product_totals
+[0m11:09:12.727482 [debug] [Thread-3 (]: Began compiling node model.haddock_test_data.sales_summary
+[0m11:09:12.737484 [debug] [Thread-1 (]: Writing injected SQL for node "model.haddock_test_data.customer_totals"
+[0m11:09:12.740486 [debug] [Thread-2 (]: Writing injected SQL for node "model.haddock_test_data.product_totals"
+[0m11:09:12.743485 [debug] [Thread-3 (]: Writing injected SQL for node "model.haddock_test_data.sales_summary"
+[0m11:09:12.750513 [debug] [Thread-3 (]: Began executing node model.haddock_test_data.sales_summary
+[0m11:09:12.760511 [debug] [Thread-1 (]: Began executing node model.haddock_test_data.customer_totals
+[0m11:09:12.761514 [debug] [Thread-2 (]: Began executing node model.haddock_test_data.product_totals
+[0m11:09:12.787949 [debug] [Thread-3 (]: Writing runtime sql for node "model.haddock_test_data.sales_summary"
+[0m11:09:12.790970 [debug] [Thread-1 (]: Writing runtime sql for node "model.haddock_test_data.customer_totals"
+[0m11:09:12.793957 [debug] [Thread-2 (]: Writing runtime sql for node "model.haddock_test_data.product_totals"
+[0m11:09:12.798942 [debug] [Thread-2 (]: Using duckdb connection "model.haddock_test_data.product_totals"
+[0m11:09:12.800944 [debug] [Thread-1 (]: Using duckdb connection "model.haddock_test_data.customer_totals"
+[0m11:09:12.801946 [debug] [Thread-3 (]: Using duckdb connection "model.haddock_test_data.sales_summary"
+[0m11:09:12.802940 [debug] [Thread-2 (]: On model.haddock_test_data.product_totals: BEGIN
+[0m11:09:12.803953 [debug] [Thread-1 (]: On model.haddock_test_data.customer_totals: BEGIN
+[0m11:09:12.804943 [debug] [Thread-3 (]: On model.haddock_test_data.sales_summary: BEGIN
+[0m11:09:12.805959 [debug] [Thread-2 (]: Opening a new connection, currently in state init
+[0m11:09:12.806950 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m11:09:12.806950 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m11:09:12.808951 [debug] [Thread-2 (]: SQL status: OK in 0.003 seconds
+[0m11:09:12.809959 [debug] [Thread-1 (]: SQL status: OK in 0.003 seconds
+[0m11:09:12.809959 [debug] [Thread-2 (]: Using duckdb connection "model.haddock_test_data.product_totals"
+[0m11:09:12.810951 [debug] [Thread-3 (]: SQL status: OK in 0.004 seconds
+[0m11:09:12.811952 [debug] [Thread-1 (]: Using duckdb connection "model.haddock_test_data.customer_totals"
+[0m11:09:12.812963 [debug] [Thread-2 (]: On model.haddock_test_data.product_totals: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "model.haddock_test_data.product_totals"} */
+
+  
+  create view "test_data"."main"."product_totals__dbt_tmp" as (
+    SELECT
+    p.ID as ProductID,
+    p.Name as ProductName,
+    p.Category,
+    p.Price,
+    COUNT(DISTINCT s.ID) as TimesSold,
+    COUNT(DISTINCT s.CustomerID) as UniqueCustomers,
+    SUM(s.Quantity) as TotalQuantity,
+    SUM(s.Quantity * p.Price) as TotalRevenue
+FROM "test_data"."main_main"."products" p
+LEFT JOIN "test_data"."main_main"."sales" s ON s.ProductID = p.ID
+GROUP BY p.ID, p.Name, p.Category, p.Price
+  );
+
+[0m11:09:12.812963 [debug] [Thread-3 (]: Using duckdb connection "model.haddock_test_data.sales_summary"
+[0m11:09:12.813960 [debug] [Thread-1 (]: On model.haddock_test_data.customer_totals: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "model.haddock_test_data.customer_totals"} */
+
+  
+  create view "test_data"."main"."customer_totals__dbt_tmp" as (
+    SELECT
+    c.ID as CustomerID,
+    c.Name as CustomerName,
+    c.Email,
+    r.Name as RegionName,
+    r.Country,
+    COUNT(DISTINCT s.ID) as OrderCount,
+    SUM(s.Quantity) as TotalItems,
+    SUM(s.Quantity * p.Price) as TotalSpent
+FROM "test_data"."main_main"."customers" c
+LEFT JOIN "test_data"."main_main"."sales" s ON s.CustomerID = c.ID
+LEFT JOIN "test_data"."main_main"."products" p ON s.ProductID = p.ID
+LEFT JOIN "test_data"."main_main"."regions" r ON c.RegionID = r.ID
+GROUP BY c.ID, c.Name, c.Email, r.Name, r.Country
+  );
+
+[0m11:09:12.815962 [debug] [Thread-3 (]: On model.haddock_test_data.sales_summary: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "model.haddock_test_data.sales_summary"} */
+
+  
+  create view "test_data"."main"."sales_summary__dbt_tmp" as (
+    SELECT
+    s.ID as SaleID,
+    s.SaleDate,
+    s.Quantity,
+    c.ID as CustomerID,
+    c.Name as CustomerName,
+    p.ID as ProductID,
+    p.Name as ProductName,
+    p.Category,
+    p.Price,
+    s.Quantity * p.Price as TotalAmount,
+    r.ID as RegionID,
+    r.Name as RegionName,
+    r.Country
+FROM "test_data"."main_main"."sales" s
+JOIN "test_data"."main_main"."customers" c ON s.CustomerID = c.ID
+JOIN "test_data"."main_main"."products" p ON s.ProductID = p.ID
+JOIN "test_data"."main_main"."regions" r ON c.RegionID = r.ID
+  );
+
+[0m11:09:12.816964 [debug] [Thread-2 (]: SQL status: OK in 0.001 seconds
+[0m11:09:12.826675 [debug] [Thread-2 (]: Using duckdb connection "model.haddock_test_data.product_totals"
+[0m11:09:12.827685 [debug] [Thread-1 (]: SQL status: OK in 0.010 seconds
+[0m11:09:12.827685 [debug] [Thread-3 (]: SQL status: OK in 0.010 seconds
+[0m11:09:12.828741 [debug] [Thread-2 (]: On model.haddock_test_data.product_totals: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "model.haddock_test_data.product_totals"} */
+alter view "test_data"."main"."product_totals__dbt_tmp" rename to "product_totals"
+[0m11:09:12.832697 [debug] [Thread-1 (]: Using duckdb connection "model.haddock_test_data.customer_totals"
+[0m11:09:12.834699 [debug] [Thread-3 (]: Using duckdb connection "model.haddock_test_data.sales_summary"
+[0m11:09:12.835697 [debug] [Thread-1 (]: On model.haddock_test_data.customer_totals: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "model.haddock_test_data.customer_totals"} */
+alter view "test_data"."main"."customer_totals__dbt_tmp" rename to "customer_totals"
+[0m11:09:12.836680 [debug] [Thread-2 (]: SQL status: OK in 0.001 seconds
+[0m11:09:12.837677 [debug] [Thread-3 (]: On model.haddock_test_data.sales_summary: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "model.haddock_test_data.sales_summary"} */
+alter view "test_data"."main"."sales_summary__dbt_tmp" rename to "sales_summary"
+[0m11:09:12.848687 [debug] [Thread-2 (]: On model.haddock_test_data.product_totals: COMMIT
+[0m11:09:12.849717 [debug] [Thread-1 (]: SQL status: OK in 0.012 seconds
+[0m11:09:12.849717 [debug] [Thread-2 (]: Using duckdb connection "model.haddock_test_data.product_totals"
+[0m11:09:12.850771 [debug] [Thread-3 (]: SQL status: OK in 0.001 seconds
+[0m11:09:12.853698 [debug] [Thread-1 (]: On model.haddock_test_data.customer_totals: COMMIT
+[0m11:09:12.853698 [debug] [Thread-2 (]: On model.haddock_test_data.product_totals: COMMIT
+[0m11:09:12.855698 [debug] [Thread-3 (]: On model.haddock_test_data.sales_summary: COMMIT
+[0m11:09:12.855698 [debug] [Thread-1 (]: Using duckdb connection "model.haddock_test_data.customer_totals"
+[0m11:09:12.857706 [debug] [Thread-3 (]: Using duckdb connection "model.haddock_test_data.sales_summary"
+[0m11:09:12.858695 [debug] [Thread-1 (]: On model.haddock_test_data.customer_totals: COMMIT
+[0m11:09:12.858695 [debug] [Thread-3 (]: On model.haddock_test_data.sales_summary: COMMIT
+[0m11:09:12.861694 [debug] [Thread-2 (]: SQL status: OK in 0.005 seconds
+[0m11:09:12.868866 [debug] [Thread-2 (]: Using duckdb connection "model.haddock_test_data.product_totals"
+[0m11:09:12.869879 [debug] [Thread-1 (]: SQL status: OK in 0.009 seconds
+[0m11:09:12.870900 [debug] [Thread-3 (]: SQL status: OK in 0.010 seconds
+[0m11:09:12.871875 [debug] [Thread-2 (]: On model.haddock_test_data.product_totals: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "model.haddock_test_data.product_totals"} */
+
+      drop view if exists "test_data"."main"."product_totals__dbt_backup" cascade
+    
+[0m11:09:12.874891 [debug] [Thread-1 (]: Using duckdb connection "model.haddock_test_data.customer_totals"
+[0m11:09:12.876892 [debug] [Thread-3 (]: Using duckdb connection "model.haddock_test_data.sales_summary"
+[0m11:09:12.877892 [debug] [Thread-1 (]: On model.haddock_test_data.customer_totals: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "model.haddock_test_data.customer_totals"} */
+
+      drop view if exists "test_data"."main"."customer_totals__dbt_backup" cascade
+    
+[0m11:09:12.879890 [debug] [Thread-2 (]: SQL status: OK in 0.002 seconds
+[0m11:09:12.879890 [debug] [Thread-3 (]: On model.haddock_test_data.sales_summary: /* {"app": "dbt", "dbt_version": "1.8.7", "profile_name": "haddock_test_data", "target_name": "dev", "node_id": "model.haddock_test_data.sales_summary"} */
+
+      drop view if exists "test_data"."main"."sales_summary__dbt_backup" cascade
+    
+[0m11:09:12.882900 [debug] [Thread-2 (]: On model.haddock_test_data.product_totals: Close
+[0m11:09:12.883877 [debug] [Thread-1 (]: SQL status: OK in 0.003 seconds
+[0m11:09:12.887880 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '23f8c3af-9284-4472-9a6e-ab8f76590e7f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E5795F04A0>]}
+[0m11:09:12.889894 [debug] [Thread-1 (]: On model.haddock_test_data.customer_totals: Close
+[0m11:09:12.890881 [debug] [Thread-3 (]: SQL status: OK in 0.005 seconds
+[0m11:09:12.890881 [info ] [Thread-2 (]: 2 of 3 OK created sql view model main.product_totals ........................... [[32mOK[0m in 0.16s]
+[0m11:09:12.892879 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '23f8c3af-9284-4472-9a6e-ab8f76590e7f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E579CB3B60>]}
+[0m11:09:12.894877 [debug] [Thread-3 (]: On model.haddock_test_data.sales_summary: Close
+[0m11:09:12.894877 [debug] [Thread-2 (]: Finished running node model.haddock_test_data.product_totals
+[0m11:09:12.895869 [info ] [Thread-1 (]: 1 of 3 OK created sql view model main.customer_totals .......................... [[32mOK[0m in 0.17s]
+[0m11:09:12.896869 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '23f8c3af-9284-4472-9a6e-ab8f76590e7f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E579BB6A80>]}
+[0m11:09:12.897870 [debug] [Thread-1 (]: Finished running node model.haddock_test_data.customer_totals
+[0m11:09:12.898869 [info ] [Thread-3 (]: 3 of 3 OK created sql view model main.sales_summary ............................ [[32mOK[0m in 0.17s]
+[0m11:09:12.899873 [debug] [Thread-3 (]: Finished running node model.haddock_test_data.sales_summary
+[0m11:09:12.901870 [debug] [MainThread]: Using duckdb connection "master"
+[0m11:09:12.902868 [debug] [MainThread]: On master: BEGIN
+[0m11:09:12.902868 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m11:09:12.903867 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m11:09:12.903867 [debug] [MainThread]: On master: COMMIT
+[0m11:09:12.903867 [debug] [MainThread]: Using duckdb connection "master"
+[0m11:09:12.904867 [debug] [MainThread]: On master: COMMIT
+[0m11:09:12.904867 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m11:09:12.905867 [debug] [MainThread]: On master: Close
+[0m11:09:12.905867 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m11:09:12.905867 [debug] [MainThread]: Connection 'create_test_data_main' was properly closed.
+[0m11:09:12.906867 [debug] [MainThread]: Connection 'list_test_data_main' was properly closed.
+[0m11:09:12.906867 [debug] [MainThread]: Connection 'list_test_data_main_main' was properly closed.
+[0m11:09:12.906867 [debug] [MainThread]: Connection 'model.haddock_test_data.customer_totals' was properly closed.
+[0m11:09:12.907867 [debug] [MainThread]: Connection 'model.haddock_test_data.product_totals' was properly closed.
+[0m11:09:12.907867 [debug] [MainThread]: Connection 'model.haddock_test_data.sales_summary' was properly closed.
+[0m11:09:12.907867 [info ] [MainThread]: 
+[0m11:09:12.908867 [info ] [MainThread]: Finished running 3 view models in 0 hours 0 minutes and 0.41 seconds (0.41s).
+[0m11:09:12.909867 [debug] [MainThread]: Command end result
+[0m11:09:12.957882 [info ] [MainThread]: 
+[0m11:09:12.958878 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m11:09:12.959879 [info ] [MainThread]: 
+[0m11:09:12.960877 [info ] [MainThread]: Done. PASS=3 WARN=0 ERROR=0 SKIP=0 TOTAL=3
+[0m11:09:12.962878 [debug] [MainThread]: Command `dbt run` succeeded at 11:09:12.962878 after 1.22 seconds
+[0m11:09:12.963881 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E575634A40>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E57978E450>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E577DEB4A0>]}
+[0m11:09:12.964390 [debug] [MainThread]: Flushing usage events

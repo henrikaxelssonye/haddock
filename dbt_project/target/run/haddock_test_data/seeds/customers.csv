@@ -1,0 +1,13 @@
+
+    
+    
+    
+    create table "test_data"."main_main"."customers" ("ID" integer,"Name" text,"Email" text,"RegionID" integer)
+  ;
+    -- dbt seed --
+    
+          COPY "test_data"."main_main"."customers" FROM 'C:\kund\haddock\dbt_project\seeds\customers.csv' (FORMAT CSV, HEADER TRUE, DELIMITER ',')
+        
+
+;
+  

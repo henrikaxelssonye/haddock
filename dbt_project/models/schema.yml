@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: sales_summary
+    description: "Sales with joined customer and product info"
+  - name: customer_totals
+    description: "Total sales per customer"
+  - name: product_totals
+    description: "Total sales per product"

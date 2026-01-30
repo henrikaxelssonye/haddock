@@ -1,0 +1,7 @@
+haddock_test_data:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: '../test_data.duckdb'
+      threads: 4
