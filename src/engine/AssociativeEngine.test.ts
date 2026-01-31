@@ -108,7 +108,7 @@ describe('AssociativeEngine', () => {
       const mockRows = [{ ID: 1, CustomerID: 1, Status: 'Pending' }];
       const executeQuery = vi.fn().mockResolvedValue({ rows: mockRows });
 
-      const result = await engine.getFilteredTableData(
+      await engine.getFilteredTableData(
         'Orders',
         selections,
         relationships,

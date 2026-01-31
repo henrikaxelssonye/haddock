@@ -6,55 +6,68 @@ import {
   createColumnHelper,
   type ColumnDef,
 } from '@tanstack/react-table';
-import { useTableData } from '../../hooks';
+import { useCompositeTableData } from '../../hooks';
 import { useSelectionStore } from '../../stores';
 import { TableCell } from '../tables/TableCell';
-import type { DuckDBValue } from '../../types';
+import type { DuckDBValue, ColumnSelection } from '../../types';
+import { getTablesFromSelections } from '../../types/canvas';
 
 interface CanvasTableProps {
-  tableName: string;
-  selectedColumns: string[];
+  columnSelections: ColumnSelection[];
 }
 
 type RowData = Record<string, DuckDBValue>;
 
 const columnHelper = createColumnHelper<RowData>();
 
-export function CanvasTable({ tableName, selectedColumns }: CanvasTableProps) {
-  const { columns, rows, isLoading, error } = useTableData(tableName);
+export function CanvasTable({ columnSelections }: CanvasTableProps) {
+  const { columns, columnMapping, rows, isLoading, error } =
+    useCompositeTableData(columnSelections);
   const selectValue = useSelectionStore((state) => state.selectValue);
   const getValueState = useSelectionStore((state) => state.getValueState);
   const fieldStates = useSelectionStore((state) => state.fieldStates);
 
-  const filteredColumns = useMemo(
-    () => columns.filter((col) => selectedColumns.includes(col)),
-    [columns, selectedColumns]
+  // Check if this is a multi-table composite
+  const isComposite = useMemo(
+    () => getTablesFromSelections(columnSelections).length > 1,
+    [columnSelections]
   );
 
   const handleCellClick = useCallback(
-    (column: string, value: DuckDBValue, event: React.MouseEvent) => {
-      selectValue(
-        { table: tableName, column, value },
-        event.ctrlKey || event.metaKey
-      );
+    (columnName: string, value: DuckDBValue, event: React.MouseEvent) => {
+      // Look up the original table.column from the mapping
+      const mapping = columnMapping.get(columnName);
+      if (mapping) {
+        selectValue(
+          { table: mapping.table, column: mapping.column, value },
+          event.ctrlKey || event.metaKey
+        );
+      }
     },
-    [tableName, selectValue]
+    [columnMapping, selectValue]
   );
 
   const tableColumns = useMemo<ColumnDef<RowData, DuckDBValue>[]>(
     () =>
-      filteredColumns.map((col) =>
-        columnHelper.accessor((row) => row[col], {
+      columns.map((col) => {
+        const mapping = columnMapping.get(col);
+        // Display header: for composite tables show "Table.Column", for single table just "Column"
+        const displayHeader = isComposite ? col : mapping?.column || col;
+
+        return columnHelper.accessor((row) => row[col], {
           id: col,
-          header: col,
+          header: displayHeader,
           cell: (info) => {
             const value = info.getValue();
-            const state = getValueState(tableName, col, value);
+            // Get state using original table.column
+            const table = mapping?.table || '';
+            const column = mapping?.column || col;
+            const state = getValueState(table, column, value);
             return <TableCell value={value} state={state} onClick={() => {}} />;
           },
-        })
-      ),
-    [filteredColumns, tableName, getValueState, fieldStates]
+        });
+      }),
+    [columns, columnMapping, isComposite, getValueState, fieldStates]
   );
 
   const table = useReactTable({
@@ -116,7 +129,10 @@ export function CanvasTable({ tableName, selectedColumns }: CanvasTableProps) {
               {row.getVisibleCells().map((cell) => {
                 const value = cell.getValue() as DuckDBValue;
                 const columnId = cell.column.id;
-                const state = getValueState(tableName, columnId, value);
+                const mapping = columnMapping.get(columnId);
+                const table = mapping?.table || '';
+                const column = mapping?.column || columnId;
+                const state = getValueState(table, column, value);
 
                 return (
                   <TableCell

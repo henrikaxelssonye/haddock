@@ -3,7 +3,9 @@ import type {
   CanvasTableObject,
   CanvasObjectPosition,
   CanvasObjectSize,
+  ColumnSelection,
 } from '../types';
+import { toColumnSelections, getPrimaryTable } from '../types/canvas';
 
 interface CanvasState {
   objects: CanvasTableObject[];
@@ -11,11 +13,17 @@ interface CanvasState {
   nextZIndex: number;
 
   setCanvasMode: (enabled: boolean) => void;
+  // Legacy signature for backward compatibility
   addTableObject: (tableName: string, columns: string[]) => void;
+  // New signature for composite tables
+  addCompositeTableObject: (columnSelections: ColumnSelection[]) => void;
   removeObject: (id: string) => void;
   updatePosition: (id: string, position: CanvasObjectPosition) => void;
   updateSize: (id: string, size: CanvasObjectSize) => void;
+  // Legacy signature for single-table column updates
   setSelectedColumns: (id: string, columns: string[]) => void;
+  // New signature for composite column updates
+  setColumnSelections: (id: string, columnSelections: ColumnSelection[]) => void;
   bringToFront: (id: string) => void;
 }
 
@@ -36,13 +44,41 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     const { objects, nextZIndex } = get();
     const offset = objects.length * STAGGER_OFFSET;
 
+    // Convert legacy format to new columnSelections format
+    const columnSelections = toColumnSelections(tableName, columns);
+
     const newObject: CanvasTableObject = {
       id: crypto.randomUUID(),
-      tableName,
+      columnSelections,
       position: { x: 20 + offset, y: 20 + offset },
       size: { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT },
-      selectedColumns: [...columns],
       zIndex: nextZIndex,
+      // Keep legacy fields for backward compatibility
+      tableName,
+      selectedColumns: [...columns],
+    };
+
+    set({
+      objects: [...objects, newObject],
+      nextZIndex: nextZIndex + 1,
+    });
+  },
+
+  addCompositeTableObject: (columnSelections: ColumnSelection[]) => {
+    const { objects, nextZIndex } = get();
+    const offset = objects.length * STAGGER_OFFSET;
+
+    const primaryTable = getPrimaryTable(columnSelections) || 'Composite';
+
+    const newObject: CanvasTableObject = {
+      id: crypto.randomUUID(),
+      columnSelections: [...columnSelections],
+      position: { x: 20 + offset, y: 20 + offset },
+      size: { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT },
+      zIndex: nextZIndex,
+      // Legacy fields - use primary table for display
+      tableName: primaryTable,
+      selectedColumns: columnSelections.map((cs) => cs.column),
     };
 
     set({
@@ -75,9 +111,33 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
   setSelectedColumns: (id: string, columns: string[]) => {
     set((state) => ({
-      objects: state.objects.map((obj) =>
-        obj.id === id ? { ...obj, selectedColumns: columns } : obj
-      ),
+      objects: state.objects.map((obj) => {
+        if (obj.id !== id) return obj;
+        // Get the primary table from existing columnSelections
+        const primaryTable = getPrimaryTable(obj.columnSelections) || obj.tableName || '';
+        const newColumnSelections = toColumnSelections(primaryTable, columns);
+        return {
+          ...obj,
+          selectedColumns: columns,
+          columnSelections: newColumnSelections,
+        };
+      }),
+    }));
+  },
+
+  setColumnSelections: (id: string, columnSelections: ColumnSelection[]) => {
+    set((state) => ({
+      objects: state.objects.map((obj) => {
+        if (obj.id !== id) return obj;
+        const primaryTable = getPrimaryTable(columnSelections) || 'Composite';
+        return {
+          ...obj,
+          columnSelections: [...columnSelections],
+          // Update legacy fields
+          tableName: primaryTable,
+          selectedColumns: columnSelections.map((cs) => cs.column),
+        };
+      }),
     }));
   },
 

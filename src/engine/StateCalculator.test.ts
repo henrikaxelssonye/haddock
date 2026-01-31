@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { StateCalculator } from './StateCalculator';
-import type { FieldSelection, Relationship, DuckDBValue } from '../types';
+import type { FieldSelection, Relationship } from '../types';
 
 describe('StateCalculator', () => {
   const stateCalculator = new StateCalculator();

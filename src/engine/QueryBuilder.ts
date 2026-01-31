@@ -1,5 +1,6 @@
-import type { FieldSelection, Relationship, DuckDBValue } from '../types';
+import type { FieldSelection, Relationship, DuckDBValue, ColumnSelection } from '../types';
 import { RelationshipDetector } from './RelationshipDetector';
+import { getTablesFromSelections, getPrimaryTable } from '../types/canvas';
 
 export class QueryBuilder {
   private relationshipDetector = new RelationshipDetector();
@@ -237,5 +238,181 @@ ${whereClause}`;
       return `'${value.toISOString()}'`;
     }
     return String(value);
+  }
+
+  /**
+   * Build a SQL query for a composite table that selects columns from multiple related tables.
+   * This joins tables based on relationships and selects specific columns from each.
+   */
+  buildCompositeTableQuery(
+    columnSelections: ColumnSelection[],
+    selections: FieldSelection[],
+    relationships: Relationship[],
+    limit = 1000
+  ): { query: string; columnMapping: Map<string, { table: string; column: string }> } {
+    if (columnSelections.length === 0) {
+      return { query: 'SELECT 1 WHERE FALSE', columnMapping: new Map() };
+    }
+
+    // Get unique tables from column selections
+    const tables = getTablesFromSelections(columnSelections);
+    const primaryTable = getPrimaryTable(columnSelections);
+
+    if (!primaryTable) {
+      return { query: 'SELECT 1 WHERE FALSE', columnMapping: new Map() };
+    }
+
+    // If only one table, use simple query
+    if (tables.length === 1) {
+      const cols = columnSelections.map((cs) => cs.column);
+      const selectClause = cols.map((c) => `"${c}"`).join(', ');
+
+      // Build column mapping (alias -> original table.column)
+      const columnMapping = new Map<string, { table: string; column: string }>();
+      for (const cs of columnSelections) {
+        columnMapping.set(cs.column, { table: cs.table, column: cs.column });
+      }
+
+      if (selections.length === 0) {
+        return {
+          query: `SELECT ${selectClause} FROM loaded_db."${primaryTable}" LIMIT ${limit}`,
+          columnMapping,
+        };
+      }
+
+      // Apply filters from selections
+      const whereClause = this.buildWhereClause(
+        selections.filter((s) => s.table === primaryTable),
+        primaryTable
+      );
+      return {
+        query: whereClause
+          ? `SELECT ${selectClause} FROM loaded_db."${primaryTable}" WHERE ${whereClause} LIMIT ${limit}`
+          : `SELECT ${selectClause} FROM loaded_db."${primaryTable}" LIMIT ${limit}`,
+        columnMapping,
+      };
+    }
+
+    // Multiple tables: need JOINs
+    const tableAliases = new Map<string, string>();
+    tableAliases.set(primaryTable, 't');
+    let aliasCounter = 1;
+
+    const joins: string[] = [];
+    const joinedTables = new Set<string>([primaryTable]);
+    const unreachableTables: string[] = [];
+
+    // Find JOIN path to all required tables
+    for (const table of tables) {
+      if (table === primaryTable) continue;
+
+      const path = this.relationshipDetector.findPath(primaryTable, table, relationships);
+      if (!path || path.length === 0) {
+        unreachableTables.push(table);
+        continue;
+      }
+
+      // Build JOINs along the path
+      let currentTable = primaryTable;
+      for (const rel of path) {
+        const nextTable = rel.fromTable === currentTable ? rel.toTable : rel.fromTable;
+
+        if (!joinedTables.has(nextTable)) {
+          const nextAlias = `t${aliasCounter++}`;
+          tableAliases.set(nextTable, nextAlias);
+
+          const currentAlias = tableAliases.get(currentTable)!;
+          const joinCol = rel.fromTable === currentTable ? rel.fromColumn : rel.toColumn;
+          const targetCol = rel.fromTable === currentTable ? rel.toColumn : rel.fromColumn;
+
+          joins.push(
+            `LEFT JOIN loaded_db."${nextTable}" ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
+          );
+          joinedTables.add(nextTable);
+        }
+
+        currentTable = nextTable;
+      }
+    }
+
+    // Build SELECT clause with aliased column names
+    // Format: alias."Column" AS "Table.Column"
+    const selectParts: string[] = [];
+    const columnMapping = new Map<string, { table: string; column: string }>();
+
+    for (const cs of columnSelections) {
+      if (unreachableTables.includes(cs.table)) continue;
+
+      const alias = tableAliases.get(cs.table);
+      if (!alias) continue;
+
+      const outputName = `${cs.table}.${cs.column}`;
+      selectParts.push(`${alias}."${cs.column}" AS "${outputName}"`);
+      columnMapping.set(outputName, { table: cs.table, column: cs.column });
+    }
+
+    if (selectParts.length === 0) {
+      return { query: 'SELECT 1 WHERE FALSE', columnMapping: new Map() };
+    }
+
+    // Build WHERE clause from selections (filter conditions)
+    const whereConditions: string[] = [];
+
+    // Group selections by table
+    const selectionsByTable = new Map<string, FieldSelection[]>();
+    for (const sel of selections) {
+      const existing = selectionsByTable.get(sel.table) || [];
+      existing.push(sel);
+      selectionsByTable.set(sel.table, existing);
+    }
+
+    for (const [sourceTable, tableSelections] of selectionsByTable) {
+      const sourceAlias = tableAliases.get(sourceTable);
+      if (sourceAlias) {
+        // Table is already in our JOIN chain
+        whereConditions.push(this.buildWhereClauseWithAlias(tableSelections, sourceAlias));
+      } else {
+        // Need to add JOIN for this filter table
+        const path = this.relationshipDetector.findPath(primaryTable, sourceTable, relationships);
+        if (!path || path.length === 0) continue;
+
+        let currentTable = primaryTable;
+        for (const rel of path) {
+          const nextTable = rel.fromTable === currentTable ? rel.toTable : rel.fromTable;
+
+          if (!joinedTables.has(nextTable)) {
+            const nextAlias = `t${aliasCounter++}`;
+            tableAliases.set(nextTable, nextAlias);
+
+            const currentAlias = tableAliases.get(currentTable)!;
+            const joinCol = rel.fromTable === currentTable ? rel.fromColumn : rel.toColumn;
+            const targetCol = rel.fromTable === currentTable ? rel.toColumn : rel.fromColumn;
+
+            joins.push(
+              `JOIN loaded_db."${nextTable}" ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
+            );
+            joinedTables.add(nextTable);
+          }
+
+          currentTable = nextTable;
+        }
+
+        const filterAlias = tableAliases.get(sourceTable)!;
+        whereConditions.push(this.buildWhereClauseWithAlias(tableSelections, filterAlias));
+      }
+    }
+
+    const selectClause = selectParts.join(', ');
+    const joinClause = joins.length > 0 ? joins.join('\n') : '';
+    const whereClause =
+      whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+    const query = `SELECT DISTINCT ${selectClause}
+FROM loaded_db."${primaryTable}" t
+${joinClause}
+${whereClause}
+LIMIT ${limit}`;
+
+    return { query, columnMapping };
   }
 }
