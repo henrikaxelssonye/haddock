@@ -78,6 +78,27 @@ describe('AssociativeEngine', () => {
       // Should have states for all fields across all tables
       expect(fieldStates.length).toBeGreaterThan(0);
     });
+
+    it('should respect target fields when provided', async () => {
+      const selections: FieldSelection[] = [
+        { table: 'Customers', column: 'Name', values: new Set(['Alice']) },
+      ];
+
+      const executeQuery = vi.fn().mockResolvedValue({ rows: [] });
+
+      const fieldStates = await engine.propagateSelection(
+        tables,
+        selections,
+        relationships,
+        executeQuery,
+        [{ table: 'Orders', column: 'Status' }]
+      );
+
+      const keys = fieldStates.map((s) => `${s.table}.${s.column}`);
+      expect(keys).toContain('Orders.Status');
+      expect(keys).toContain('Customers.Name');
+      expect(fieldStates.length).toBe(2);
+    });
   });
 
   describe('getFilteredTableData', () => {

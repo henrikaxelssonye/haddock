@@ -1,5 +1,11 @@
-import type { FieldSelection, FieldState, Relationship, TableSchema } from '../types';
-import { QueryBuilder } from './QueryBuilder';
+import type {
+  FieldSelection,
+  FieldState,
+  Relationship,
+  TableSchema,
+  ColumnSelection
+} from '../types';
+import { QueryBuilder, toSqlTableRef } from './QueryBuilder';
 import { StateCalculator } from './StateCalculator';
 import type { DuckDBValue } from '../types';
 
@@ -16,7 +22,8 @@ export class AssociativeEngine {
     tables: TableSchema[],
     selections: FieldSelection[],
     relationships: Relationship[],
-    executeQuery: QueryExecutor
+    executeQuery: QueryExecutor,
+    targetFields?: ColumnSelection[]
   ): Promise<FieldState[]> {
     if (selections.length === 0) {
       return [];
@@ -27,7 +34,8 @@ export class AssociativeEngine {
       tables,
       selections,
       relationships,
-      executeQuery
+      executeQuery,
+      targetFields
     );
 
     return fieldStates;
@@ -71,7 +79,7 @@ export class AssociativeEngine {
     columnName: string,
     executeQuery: QueryExecutor
   ): Promise<DuckDBValue[]> {
-    const query = `SELECT DISTINCT "${columnName}" FROM loaded_db."${tableName}" ORDER BY "${columnName}" LIMIT 10000`;
+    const query = `SELECT DISTINCT "${columnName}" FROM ${toSqlTableRef(tableName)} ORDER BY "${columnName}" LIMIT 10000`;
     const result = await executeQuery(query);
     return result.rows.map(row => row[columnName]);
   }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { QueryBuilder } from './QueryBuilder';
-import type { FieldSelection, Relationship } from '../types';
+import type { FieldSelection, Relationship, ColumnSelection } from '../types';
 
 describe('QueryBuilder', () => {
   const queryBuilder = new QueryBuilder();
@@ -218,6 +218,100 @@ describe('QueryBuilder', () => {
 
       expect(query).toContain('JOIN');
       expect(query).toContain('"Customers"');
+    });
+  });
+
+  describe('buildCompositeTableQuery', () => {
+    it('should apply cross-table selections for single-table composite queries', () => {
+      const columnSelections: ColumnSelection[] = [
+        { table: 'Orders', column: 'ID' },
+        { table: 'Orders', column: 'CustomerID' },
+      ];
+      const selections: FieldSelection[] = [
+        { table: 'Customers', column: 'Name', values: new Set(['Alice']) },
+      ];
+
+      const { query } = queryBuilder.buildCompositeTableQuery(
+        columnSelections,
+        selections,
+        relationships
+      );
+
+      expect(query).toContain('FROM (SELECT DISTINCT t.* FROM loaded_db."Orders" t');
+      expect(query).toContain('JOIN loaded_db."Customers"');
+      expect(query).toContain("'Alice'");
+    });
+
+    it('should prefer existing joined tables for filter paths when duplicate relationship chains exist', () => {
+      const duplicateRelationships: Relationship[] = [
+        {
+          id: 'large_sales.ProductID->products.ID',
+          fromTable: 'large_sales',
+          fromColumn: 'ProductID',
+          toTable: 'products',
+          toColumn: 'ID',
+          confidence: 'high',
+        },
+        {
+          id: 'sales.ProductID->products.ID',
+          fromTable: 'sales',
+          fromColumn: 'ProductID',
+          toTable: 'products',
+          toColumn: 'ID',
+          confidence: 'high',
+        },
+        {
+          id: 'large_sales.CustomerID->customers.ID',
+          fromTable: 'large_sales',
+          fromColumn: 'CustomerID',
+          toTable: 'customers',
+          toColumn: 'ID',
+          confidence: 'high',
+        },
+        {
+          id: 'main_main.sales.ProductID->products.ID',
+          fromTable: 'main_main.sales',
+          fromColumn: 'ProductID',
+          toTable: 'products',
+          toColumn: 'ID',
+          confidence: 'high',
+        },
+        {
+          id: 'main_main.sales.CustomerID->customers.ID',
+          fromTable: 'main_main.sales',
+          fromColumn: 'CustomerID',
+          toTable: 'customers',
+          toColumn: 'ID',
+          confidence: 'high',
+        },
+        {
+          id: 'sales.CustomerID->customers.ID',
+          fromTable: 'sales',
+          fromColumn: 'CustomerID',
+          toTable: 'customers',
+          toColumn: 'ID',
+          confidence: 'high',
+        },
+      ];
+
+      const columnSelections: ColumnSelection[] = [
+        { table: 'products', column: 'Name' },
+        { table: 'sales', column: 'CustomerID' },
+      ];
+      const selections: FieldSelection[] = [
+        { table: 'customers', column: 'Name', values: new Set(['Karin Olsen']) },
+      ];
+
+      const { query } = queryBuilder.buildCompositeTableQuery(
+        columnSelections,
+        selections,
+        duplicateRelationships
+      );
+
+      expect(query).toContain('LEFT JOIN loaded_db."sales" t1 ON t."ID" = t1."ProductID"');
+      expect(query).toContain('JOIN loaded_db."customers" t2 ON t1."CustomerID" = t2."ID"');
+      expect(query).not.toContain('large_sales');
+      expect(query).not.toContain('main_main');
     });
   });
 });

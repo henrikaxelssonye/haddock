@@ -2,8 +2,52 @@ import type { FieldSelection, Relationship, DuckDBValue, ColumnSelection } from 
 import { RelationshipDetector } from './RelationshipDetector';
 import { getTablesFromSelections, getPrimaryTable } from '../types/canvas';
 
+/**
+ * Convert a table name (which may include schema prefix) to proper SQL syntax.
+ * - "customers" -> loaded_db."customers"
+ * - "staging.customers" -> loaded_db."staging"."customers"
+ */
+export function toSqlTableRef(tableName: string): string {
+  if (tableName.includes('.')) {
+    const [schema, table] = tableName.split('.', 2);
+    return `loaded_db."${schema}"."${table}"`;
+  }
+  return `loaded_db."${tableName}"`;
+}
+
 export class QueryBuilder {
   private relationshipDetector = new RelationshipDetector();
+  private getRelationshipPriority(
+    relationship: Relationship,
+    preferredTables: Set<string>
+  ): number {
+    let score = 0;
+    if (preferredTables.has(relationship.fromTable)) score += 2;
+    if (preferredTables.has(relationship.toTable)) score += 2;
+    if (!relationship.fromTable.includes('.')) score += 1;
+    if (!relationship.toTable.includes('.')) score += 1;
+    if (!relationship.fromTable.includes('_')) score += 1;
+    if (!relationship.toTable.includes('_')) score += 1;
+    return score;
+  }
+
+  private findPreferredPath(
+    fromTable: string,
+    toTable: string,
+    relationships: Relationship[],
+    preferredTables: Set<string>
+  ): Relationship[] | null {
+    const prioritizedRelationships = [...relationships].sort(
+      (a, b) =>
+        this.getRelationshipPriority(b, preferredTables) -
+        this.getRelationshipPriority(a, preferredTables)
+    );
+    return this.relationshipDetector.findPath(
+      fromTable,
+      toTable,
+      prioritizedRelationships
+    );
+  }
 
   /**
    * Build a SQL query to get filtered data for a table based on current selections
@@ -15,7 +59,7 @@ export class QueryBuilder {
     limit = 1000
   ): string {
     if (selections.length === 0) {
-      return `SELECT * FROM loaded_db."${targetTable}" LIMIT ${limit}`;
+      return `SELECT * FROM ${toSqlTableRef(targetTable)} LIMIT ${limit}`;
     }
 
     // Group selections by table
@@ -32,7 +76,7 @@ export class QueryBuilder {
         selectionsByTable.get(targetTable)!,
         targetTable
       );
-      return `SELECT * FROM loaded_db."${targetTable}" WHERE ${whereClause} LIMIT ${limit}`;
+      return `SELECT * FROM ${toSqlTableRef(targetTable)} WHERE ${whereClause} LIMIT ${limit}`;
     }
 
     // Need JOINs to filter from other tables
@@ -53,10 +97,11 @@ export class QueryBuilder {
       }
 
       // Find path from target to source table
-      const path = this.relationshipDetector.findPath(
+      const path = this.findPreferredPath(
         targetTable,
         sourceTable,
-        relationships
+        relationships,
+        joinedTables
       );
 
       if (!path || path.length === 0) {
@@ -79,7 +124,7 @@ export class QueryBuilder {
           const targetCol = rel.fromTable === currentTable ? rel.toColumn : rel.fromColumn;
 
           joins.push(
-            `JOIN loaded_db."${nextTable}" ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
+            `JOIN ${toSqlTableRef(nextTable)} ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
           );
           joinedTables.add(nextTable);
         }
@@ -97,7 +142,7 @@ export class QueryBuilder {
       ? `WHERE ${whereConditions.join(' AND ')}`
       : '';
 
-    return `SELECT DISTINCT t.* FROM loaded_db."${targetTable}" t
+    return `SELECT DISTINCT t.* FROM ${toSqlTableRef(targetTable)} t
 ${joinClause}
 ${whereClause}
 LIMIT ${limit}`;
@@ -118,7 +163,7 @@ LIMIT ${limit}`;
     );
 
     if (relevantSelections.length === 0) {
-      return `SELECT DISTINCT "${targetColumn}" FROM loaded_db."${targetTable}"`;
+      return `SELECT DISTINCT "${targetColumn}" FROM ${toSqlTableRef(targetTable)}`;
     }
 
     // Group selections by table
@@ -144,10 +189,11 @@ LIMIT ${limit}`;
         continue;
       }
 
-      const path = this.relationshipDetector.findPath(
+      const path = this.findPreferredPath(
         targetTable,
         sourceTable,
-        relationships
+        relationships,
+        joinedTables
       );
 
       if (!path || path.length === 0) {
@@ -167,7 +213,7 @@ LIMIT ${limit}`;
           const targetCol = rel.fromTable === currentTable ? rel.toColumn : rel.fromColumn;
 
           joins.push(
-            `JOIN loaded_db."${nextTable}" ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
+            `JOIN ${toSqlTableRef(nextTable)} ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
           );
           joinedTables.add(nextTable);
         }
@@ -184,7 +230,7 @@ LIMIT ${limit}`;
       ? `WHERE ${whereConditions.join(' AND ')}`
       : '';
 
-    return `SELECT DISTINCT t."${targetColumn}" FROM loaded_db."${targetTable}" t
+    return `SELECT DISTINCT t."${targetColumn}" FROM ${toSqlTableRef(targetTable)} t
 ${joinClause}
 ${whereClause}`;
   }
@@ -199,7 +245,7 @@ ${whereClause}`;
     const conditions = selections.map(sel => {
       const values = Array.from(sel.values);
       const formattedValues = values.map(v => this.formatValue(v)).join(', ');
-      return `loaded_db."${tableName}"."${sel.column}" IN (${formattedValues})`;
+      return `${toSqlTableRef(tableName)}."${sel.column}" IN (${formattedValues})`;
     });
 
     return conditions.join(' AND ');
@@ -273,22 +319,14 @@ ${whereClause}`;
         columnMapping.set(cs.column, { table: cs.table, column: cs.column });
       }
 
-      if (selections.length === 0) {
-        return {
-          query: `SELECT ${selectClause} FROM loaded_db."${primaryTable}" LIMIT ${limit}`,
-          columnMapping,
-        };
-      }
-
-      // Apply filters from selections
-      const whereClause = this.buildWhereClause(
-        selections.filter((s) => s.table === primaryTable),
-        primaryTable
+      const baseQuery = this.buildTableQuery(
+        primaryTable,
+        selections,
+        relationships,
+        limit
       );
       return {
-        query: whereClause
-          ? `SELECT ${selectClause} FROM loaded_db."${primaryTable}" WHERE ${whereClause} LIMIT ${limit}`
-          : `SELECT ${selectClause} FROM loaded_db."${primaryTable}" LIMIT ${limit}`,
+        query: `SELECT ${selectClause} FROM (${baseQuery}) t`,
         columnMapping,
       };
     }
@@ -306,7 +344,12 @@ ${whereClause}`;
     for (const table of tables) {
       if (table === primaryTable) continue;
 
-      const path = this.relationshipDetector.findPath(primaryTable, table, relationships);
+      const path = this.findPreferredPath(
+        primaryTable,
+        table,
+        relationships,
+        joinedTables
+      );
       if (!path || path.length === 0) {
         unreachableTables.push(table);
         continue;
@@ -326,7 +369,7 @@ ${whereClause}`;
           const targetCol = rel.fromTable === currentTable ? rel.toColumn : rel.fromColumn;
 
           joins.push(
-            `LEFT JOIN loaded_db."${nextTable}" ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
+            `LEFT JOIN ${toSqlTableRef(nextTable)} ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
           );
           joinedTables.add(nextTable);
         }
@@ -373,7 +416,12 @@ ${whereClause}`;
         whereConditions.push(this.buildWhereClauseWithAlias(tableSelections, sourceAlias));
       } else {
         // Need to add JOIN for this filter table
-        const path = this.relationshipDetector.findPath(primaryTable, sourceTable, relationships);
+        const path = this.findPreferredPath(
+          primaryTable,
+          sourceTable,
+          relationships,
+          joinedTables
+        );
         if (!path || path.length === 0) continue;
 
         let currentTable = primaryTable;
@@ -389,7 +437,7 @@ ${whereClause}`;
             const targetCol = rel.fromTable === currentTable ? rel.toColumn : rel.fromColumn;
 
             joins.push(
-              `JOIN loaded_db."${nextTable}" ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
+              `JOIN ${toSqlTableRef(nextTable)} ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
             );
             joinedTables.add(nextTable);
           }
@@ -408,7 +456,7 @@ ${whereClause}`;
       whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
     const query = `SELECT DISTINCT ${selectClause}
-FROM loaded_db."${primaryTable}" t
+FROM ${toSqlTableRef(primaryTable)} t
 ${joinClause}
 ${whereClause}
 LIMIT ${limit}`;

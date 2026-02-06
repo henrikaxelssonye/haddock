@@ -3,9 +3,10 @@ import type {
   FieldState,
   SelectionState,
   Relationship,
-  DuckDBValue
+  DuckDBValue,
+  ColumnSelection
 } from '../types';
-import { QueryBuilder } from './QueryBuilder';
+import { QueryBuilder, toSqlTableRef } from './QueryBuilder';
 
 type QueryExecutor = (sql: string) => Promise<{ rows: Record<string, DuckDBValue>[] }>;
 
@@ -19,30 +20,50 @@ export class StateCalculator {
     tables: { name: string; columns: { name: string }[] }[],
     selections: FieldSelection[],
     relationships: Relationship[],
-    executeQuery: QueryExecutor
+    executeQuery: QueryExecutor,
+    targetFields?: ColumnSelection[]
   ): Promise<FieldState[]> {
-    const fieldStates: FieldState[] = [];
-
     // If no selections, everything is "possible"
     if (selections.length === 0) {
-      return fieldStates;
+      return [];
     }
 
-    // Calculate states for each field in each table
-    for (const table of tables) {
-      for (const column of table.columns) {
-        const fieldState = await this.calculateFieldState(
-          table.name,
-          column.name,
-          selections,
-          relationships,
-          executeQuery
-        );
-        fieldStates.push(fieldState);
+    const selectedFieldKeys = new Set(
+      selections.map((s) => `${s.table}.${s.column}`)
+    );
+    const targetFieldKeys = new Set<string>();
+    for (const sf of selectedFieldKeys) {
+      targetFieldKeys.add(sf);
+    }
+    if (targetFields) {
+      for (const field of targetFields) {
+        targetFieldKeys.add(`${field.table}.${field.column}`);
       }
     }
 
-    return fieldStates;
+    const fieldsToCalculate: Array<{ tableName: string; columnName: string }> = [];
+    const shouldCalculateAll = !targetFields || targetFields.length === 0;
+
+    // Calculate states only for needed fields.
+    for (const table of tables) {
+      for (const column of table.columns) {
+        if (shouldCalculateAll || targetFieldKeys.has(`${table.name}.${column.name}`)) {
+          fieldsToCalculate.push({ tableName: table.name, columnName: column.name });
+        }
+      }
+    }
+
+    return Promise.all(
+      fieldsToCalculate.map(({ tableName, columnName }) =>
+        this.calculateFieldState(
+          tableName,
+          columnName,
+          selections,
+          relationships,
+          executeQuery
+        )
+      )
+    );
   }
 
   /**
@@ -69,7 +90,7 @@ export class StateCalculator {
       }
 
       // Get all values in this field to mark alternatives
-      const allValuesQuery = `SELECT DISTINCT "${columnName}" FROM loaded_db."${tableName}"`;
+      const allValuesQuery = `SELECT DISTINCT "${columnName}" FROM ${toSqlTableRef(tableName)}`;
       const allValuesResult = await executeQuery(allValuesQuery);
 
       for (const row of allValuesResult.rows) {
@@ -94,7 +115,7 @@ export class StateCalculator {
         );
 
         // Get all values to determine excluded ones
-        const allValuesQuery = `SELECT DISTINCT "${columnName}" FROM loaded_db."${tableName}"`;
+        const allValuesQuery = `SELECT DISTINCT "${columnName}" FROM ${toSqlTableRef(tableName)}`;
         const allValuesResult = await executeQuery(allValuesQuery);
 
         for (const row of allValuesResult.rows) {

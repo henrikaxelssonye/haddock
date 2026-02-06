@@ -75,6 +75,27 @@ describe('StateCalculator', () => {
       // Should have a state for each field in each table
       expect(states.length).toBe(5); // 3 fields in Orders + 2 in Customers
     });
+
+    it('should calculate states only for target fields plus selected fields', async () => {
+      const selections: FieldSelection[] = [
+        { table: 'Customers', column: 'Name', values: new Set(['Alice']) },
+      ];
+
+      const executeQuery = vi.fn().mockResolvedValue({ rows: [] });
+
+      const states = await stateCalculator.calculateFieldStates(
+        tables,
+        selections,
+        relationships,
+        executeQuery,
+        [{ table: 'Orders', column: 'Status' }]
+      );
+
+      const keys = states.map((s) => `${s.table}.${s.column}`);
+      expect(keys).toContain('Orders.Status');
+      expect(keys).toContain('Customers.Name');
+      expect(states.length).toBe(2);
+    });
   });
 
   describe('calculateFieldState', () => {
@@ -166,6 +187,7 @@ describe('StateCalculator', () => {
         executeQuery
       );
 
+      expect(state.valueStates.get('Pending')).toBe('possible');
       expect(state.valueStates.get('Shipped')).toBe('excluded');
       expect(state.valueStates.get('Cancelled')).toBe('excluded');
     });

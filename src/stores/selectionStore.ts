@@ -36,6 +36,47 @@ interface SelectionStore {
 
 const createFieldKey = (table: string, column: string) => `${table}.${column}`;
 
+const normalizeValue = (value: DuckDBValue): string => {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (value instanceof Date) return `date:${value.toISOString()}`;
+  if (typeof value === 'bigint') return `bigint:${value.toString()}`;
+  if (typeof value === 'number') return `number:${value}`;
+  if (typeof value === 'boolean') return `boolean:${value}`;
+  if (typeof value === 'string') return `string:${value}`;
+  return `object:${String(value)}`;
+};
+
+const setHasEquivalentValue = (set: Set<DuckDBValue>, value: DuckDBValue): boolean => {
+  if (set.has(value)) {
+    return true;
+  }
+  const normalized = normalizeValue(value);
+  for (const entry of set) {
+    if (normalizeValue(entry) === normalized) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const mapGetEquivalentValueState = (
+  valueStates: Map<DuckDBValue, SelectionState>,
+  value: DuckDBValue
+): SelectionState | undefined => {
+  const direct = valueStates.get(value);
+  if (direct) {
+    return direct;
+  }
+  const normalized = normalizeValue(value);
+  for (const [entry, state] of valueStates.entries()) {
+    if (normalizeValue(entry) === normalized) {
+      return state;
+    }
+  }
+  return undefined;
+};
+
 export const useSelectionStore = create<SelectionStore>((set, get) => ({
   selections: [],
   fieldStates: new Map(),
@@ -150,17 +191,28 @@ export const useSelectionStore = create<SelectionStore>((set, get) => ({
 
     // Check if this value is selected
     const selection = selections.find(s => s.table === table && s.column === column);
-    if (selection?.values.has(value)) {
+    if (selection && setHasEquivalentValue(selection.values, value)) {
       return 'selected';
     }
 
     // Check computed states
-    if (fieldState?.valueStates.has(value)) {
-      return fieldState.valueStates.get(value)!;
+    if (fieldState) {
+      // Empty map means propagation failed or is still in transition.
+      if (fieldState.valueStates.size === 0) {
+        return 'possible';
+      }
+
+      const state = mapGetEquivalentValueState(fieldState.valueStates, value);
+      if (state) {
+        return state;
+      }
+
+      return 'excluded';
     }
 
-    // Default to possible if no selections, otherwise excluded
-    return selections.length === 0 ? 'possible' : 'excluded';
+    // While async propagation is still computing, default to possible
+    // to avoid a full-table excluded flash on each new selection.
+    return 'possible';
   },
 
   getSelectionKey: (table: string, column: string) => createFieldKey(table, column),
