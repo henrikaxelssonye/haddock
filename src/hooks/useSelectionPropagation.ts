@@ -58,16 +58,23 @@ export function useSelectionPropagation() {
 
       try {
         const fieldStates: FieldState[] = [];
-        const fieldsByTable = new Map<string, string[]>();
+        const fieldsByTable = new Map<string, Set<string>>();
+        const selectionByField = new Map<string, Set<DuckDBValue>>();
+        for (const selection of selections) {
+          selectionByField.set(
+            `${selection.table}.${selection.column}`,
+            selection.values
+          );
+        }
+
         for (const field of targetFields) {
-          const existing = fieldsByTable.get(field.table) || [];
-          if (!existing.includes(field.column)) {
-            existing.push(field.column);
-          }
+          const existing = fieldsByTable.get(field.table) ?? new Set<string>();
+          existing.add(field.column);
           fieldsByTable.set(field.table, existing);
         }
 
         for (const [tableName, columns] of fieldsByTable) {
+          const columnList = Array.from(columns);
           const filteredData = await engine.getFilteredTableData(
             tableName,
             selections,
@@ -77,23 +84,21 @@ export function useSelectionPropagation() {
           );
 
           const distinctByColumn = new Map<string, Set<DuckDBValue>>();
-          for (const column of columns) {
+          for (const column of columnList) {
             distinctByColumn.set(column, new Set());
           }
           for (const row of filteredData.rows) {
-            for (const column of columns) {
+            for (const column of columnList) {
               distinctByColumn.get(column)!.add(row[column]);
             }
           }
 
-          for (const column of columns) {
-            const selectedField = selections.find(
-              (s) => s.table === tableName && s.column === column
-            );
+          for (const column of columnList) {
+            const selectedValues = selectionByField.get(`${tableName}.${column}`);
 
             const valueStates = new Map<DuckDBValue, SelectionState>();
-            if (selectedField) {
-              for (const value of selectedField.values) {
+            if (selectedValues) {
+              for (const value of selectedValues) {
                 valueStates.set(value, 'selected');
               }
 
@@ -103,7 +108,7 @@ export function useSelectionPropagation() {
                 executeQuery
               );
               for (const value of allValues) {
-                if (!selectedField.values.has(value)) {
+                if (!selectedValues.has(value)) {
                   valueStates.set(value, 'alternative');
                 }
               }
