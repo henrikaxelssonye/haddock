@@ -1,5 +1,5 @@
 import { useDuckDbInstance, useTableSchema, useSelectionPropagation } from './hooks';
-import { useDatabaseStore, useCanvasStore } from './stores';
+import { useDatabaseStore, useCanvasStore, useSchemaStore } from './stores';
 import {
   AppShell,
   Sidebar,
@@ -9,13 +9,15 @@ import {
   StraightTable,
   SelectionBar,
   ReportCanvas,
+  ModelDiagram,
 } from './components';
 
 function App() {
   const { isReady, isInitializing, error: dbError } = useDuckDbInstance();
   const fileName = useDatabaseStore(state => state.fileName);
-  const { activeTable } = useTableSchema();
-  const isCanvasMode = useCanvasStore(state => state.isCanvasMode);
+  const { activeTable, relationships } = useTableSchema();
+  const viewMode = useCanvasStore(state => state.viewMode);
+  const tables = useSchemaStore(state => state.tables);
 
   // Enable selection propagation
   useSelectionPropagation();
@@ -59,7 +61,11 @@ function App() {
           <div className="h-full">
             <FileDropZone />
           </div>
-        ) : isCanvasMode ? (
+        ) : viewMode === 'model' ? (
+          <div className="flex-1 min-h-0">
+            <ModelDiagram tables={tables} relationships={relationships} />
+          </div>
+        ) : viewMode === 'canvas' ? (
           <>
             <SelectionBar />
             <div className="flex-1 min-h-0">

@@ -7,11 +7,17 @@ import type {
 } from '../types';
 import { toColumnSelections, getPrimaryTable } from '../types/canvas';
 
+export type ViewMode = 'table' | 'canvas' | 'model';
+
 interface CanvasState {
   objects: CanvasTableObject[];
-  isCanvasMode: boolean;
+  viewMode: ViewMode;
   nextZIndex: number;
 
+  setViewMode: (mode: ViewMode) => void;
+  /** @deprecated Use viewMode === 'canvas' instead */
+  isCanvasMode: boolean;
+  /** @deprecated Use setViewMode instead */
   setCanvasMode: (enabled: boolean) => void;
   // Legacy signature for backward compatibility
   addTableObject: (tableName: string, columns: string[]) => void;
@@ -33,11 +39,22 @@ const DEFAULT_HEIGHT = 350;
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
   objects: [],
-  isCanvasMode: false,
+  viewMode: 'table' as ViewMode,
   nextZIndex: 1,
 
+  // New viewMode API
+  setViewMode: (mode: ViewMode) => {
+    set({ viewMode: mode });
+  },
+
+  // Legacy compatibility - computed property
+  get isCanvasMode() {
+    return get().viewMode === 'canvas';
+  },
+
+  // Legacy compatibility
   setCanvasMode: (enabled: boolean) => {
-    set({ isCanvasMode: enabled });
+    set({ viewMode: enabled ? 'canvas' : 'table' });
   },
 
   addTableObject: (tableName: string, columns: string[]) => {
