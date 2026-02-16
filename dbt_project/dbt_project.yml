@@ -18,3 +18,24 @@ clean-targets:
 seeds:
   haddock_test_data:
     +schema: main
+
+models:
+  haddock_test_data:
+    +materialized: view
+    # Materialize large models as tables for actual data storage
+    large_regions:
+      +materialized: table
+    large_customers:
+      +materialized: table
+    large_products:
+      +materialized: table
+    large_sales:
+      +materialized: table
+    large_sales_summary:
+      +materialized: table
+    large_customer_totals:
+      +materialized: table
+    large_product_totals:
+      +materialized: table
+    monthly_sales_by_region:
+      +materialized: table

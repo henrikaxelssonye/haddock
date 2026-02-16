@@ -314,4 +314,56 @@ describe('QueryBuilder', () => {
       expect(query).not.toContain('main_main');
     });
   });
+
+  describe('buildBarChartQuery', () => {
+    it('should build count aggregation without measure', () => {
+      const query = queryBuilder.buildBarChartQuery(
+        {
+          category: { table: 'Orders', column: 'Status' },
+          measure: null,
+          aggregation: 'count',
+          limit: 10,
+        },
+        [],
+        relationships
+      );
+
+      expect(query).toContain('COUNT(*) AS "__value"');
+      expect(query).toContain('GROUP BY t."Status"');
+      expect(query).toContain('LIMIT 10');
+    });
+
+    it('should include joins for cross-table filters', () => {
+      const query = queryBuilder.buildBarChartQuery(
+        {
+          category: { table: 'Orders', column: 'Status' },
+          measure: { table: 'OrderItems', column: 'Quantity' },
+          aggregation: 'sum',
+          limit: null,
+        },
+        [{ table: 'Customers', column: 'Name', values: new Set(['Alice']) }],
+        relationships
+      );
+
+      expect(query).toContain('JOIN loaded_db."OrderItems"');
+      expect(query).toContain('JOIN loaded_db."Customers"');
+      expect(query).toContain("SUM(t1.\"Quantity\") AS \"__value\"");
+      expect(query).toContain("'Alice'");
+    });
+
+    it('should return empty query when a required table is unreachable', () => {
+      const query = queryBuilder.buildBarChartQuery(
+        {
+          category: { table: 'Orders', column: 'Status' },
+          measure: { table: 'Unrelated', column: 'Value' },
+          aggregation: 'sum',
+          limit: 5,
+        },
+        [],
+        relationships
+      );
+
+      expect(query).toBe('SELECT 1 WHERE FALSE');
+    });
+  });
 });

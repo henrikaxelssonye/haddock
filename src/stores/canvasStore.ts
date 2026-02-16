@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import type {
+  CanvasObject,
   CanvasTableObject,
+  CanvasBarChartObject,
+  BarChartConfig,
   CanvasObjectPosition,
   CanvasObjectSize,
   ColumnSelection,
@@ -10,7 +13,7 @@ import { toColumnSelections, getPrimaryTable } from '../types/canvas';
 export type ViewMode = 'table' | 'canvas' | 'model';
 
 interface CanvasState {
-  objects: CanvasTableObject[];
+  objects: CanvasObject[];
   viewMode: ViewMode;
   nextZIndex: number;
 
@@ -23,6 +26,8 @@ interface CanvasState {
   addTableObject: (tableName: string, columns: string[]) => void;
   // New signature for composite tables
   addCompositeTableObject: (columnSelections: ColumnSelection[]) => void;
+  addBarChartObject: (config: BarChartConfig) => void;
+  updateBarChartConfig: (id: string, config: BarChartConfig) => void;
   removeObject: (id: string) => void;
   updatePosition: (id: string, position: CanvasObjectPosition) => void;
   updateSize: (id: string, size: CanvasObjectSize) => void;
@@ -36,6 +41,8 @@ interface CanvasState {
 const STAGGER_OFFSET = 30;
 const DEFAULT_WIDTH = 500;
 const DEFAULT_HEIGHT = 350;
+const DEFAULT_CHART_WIDTH = 560;
+const DEFAULT_CHART_HEIGHT = 360;
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
   objects: [],
@@ -66,6 +73,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
     const newObject: CanvasTableObject = {
       id: crypto.randomUUID(),
+      type: 'table',
       columnSelections,
       position: { x: 20 + offset, y: 20 + offset },
       size: { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT },
@@ -89,6 +97,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
     const newObject: CanvasTableObject = {
       id: crypto.randomUUID(),
+      type: 'table',
       columnSelections: [...columnSelections],
       position: { x: 20 + offset, y: 20 + offset },
       size: { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT },
@@ -102,6 +111,39 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       objects: [...objects, newObject],
       nextZIndex: nextZIndex + 1,
     });
+  },
+
+  addBarChartObject: (config: BarChartConfig) => {
+    const { objects, nextZIndex } = get();
+    const offset = objects.length * STAGGER_OFFSET;
+
+    const newObject: CanvasBarChartObject = {
+      id: crypto.randomUUID(),
+      type: 'barChart',
+      config: { ...config },
+      position: { x: 20 + offset, y: 20 + offset },
+      size: { width: DEFAULT_CHART_WIDTH, height: DEFAULT_CHART_HEIGHT },
+      zIndex: nextZIndex,
+    };
+
+    set({
+      objects: [...objects, newObject],
+      nextZIndex: nextZIndex + 1,
+    });
+  },
+
+  updateBarChartConfig: (id: string, config: BarChartConfig) => {
+    set((state) => ({
+      objects: state.objects.map((obj) => {
+        if (obj.id !== id || obj.type !== 'barChart') {
+          return obj;
+        }
+        return {
+          ...obj,
+          config: { ...config },
+        };
+      }),
+    }));
   },
 
   removeObject: (id: string) => {
@@ -130,6 +172,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     set((state) => ({
       objects: state.objects.map((obj) => {
         if (obj.id !== id) return obj;
+        if (obj.type !== 'table') return obj;
         // Get the primary table from existing columnSelections
         const primaryTable = getPrimaryTable(obj.columnSelections) || obj.tableName || '';
         const newColumnSelections = toColumnSelections(primaryTable, columns);
@@ -146,6 +189,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     set((state) => ({
       objects: state.objects.map((obj) => {
         if (obj.id !== id) return obj;
+        if (obj.type !== 'table') return obj;
         const primaryTable = getPrimaryTable(columnSelections) || 'Composite';
         return {
           ...obj,

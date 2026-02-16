@@ -1,6 +1,6 @@
 import { useCanvasStore } from '../../stores';
 import { CanvasToolbar } from './CanvasToolbar';
-import { CanvasTableWrapper } from './CanvasTableWrapper';
+import { CanvasObjectWrapper } from './CanvasObjectWrapper';
 
 export function ReportCanvas() {
   const objects = useCanvasStore((s) => s.objects);
@@ -21,13 +21,13 @@ export function ReportCanvas() {
             <div className="text-center text-gray-400">
               <p className="text-lg font-medium">Empty canvas</p>
               <p className="text-sm mt-1">
-                Add tables using the toolbar above or click tables in the sidebar
+                Add tables or bar charts using the toolbar above
               </p>
             </div>
           </div>
         )}
         {objects.map((obj) => (
-          <CanvasTableWrapper key={obj.id} obj={obj} />
+          <CanvasObjectWrapper key={obj.id} obj={obj} />
         ))}
       </div>
     </div>

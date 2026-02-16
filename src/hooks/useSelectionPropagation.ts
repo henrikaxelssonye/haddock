@@ -41,8 +41,15 @@ export function useSelectionPropagation() {
       }
     } else if (viewMode === 'canvas') {
       for (const obj of canvasObjects) {
-        for (const field of obj.columnSelections) {
-          addField(field.table, field.column);
+        if (obj.type === 'table') {
+          for (const field of obj.columnSelections) {
+            addField(field.table, field.column);
+          }
+        } else {
+          addField(obj.config.category.table, obj.config.category.column);
+          if (obj.config.measure) {
+            addField(obj.config.measure.table, obj.config.measure.column);
+          }
         }
       }
     }

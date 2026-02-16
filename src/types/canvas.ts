@@ -13,17 +13,43 @@ export interface ColumnSelection {
   column: string;
 }
 
-export interface CanvasTableObject {
+export type BarChartAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max';
+
+export interface BarChartColumnRef {
+  table: string;
+  column: string;
+}
+
+export interface BarChartConfig {
+  category: BarChartColumnRef;
+  measure: BarChartColumnRef | null;
+  aggregation: BarChartAggregation;
+  limit: number | null;
+}
+
+interface CanvasObjectBase {
   id: string;
-  // New: array of table.column selections for composite tables
-  columnSelections: ColumnSelection[];
+  type: 'table' | 'barChart';
   position: CanvasObjectPosition;
   size: CanvasObjectSize;
   zIndex: number;
+}
+
+export interface CanvasTableObject extends CanvasObjectBase {
+  type: 'table';
+  // New: array of table.column selections for composite tables
+  columnSelections: ColumnSelection[];
   // Legacy fields for backward compatibility (derived from columnSelections)
   tableName?: string;
   selectedColumns?: string[];
 }
+
+export interface CanvasBarChartObject extends CanvasObjectBase {
+  type: 'barChart';
+  config: BarChartConfig;
+}
+
+export type CanvasObject = CanvasTableObject | CanvasBarChartObject;
 
 /**
  * Get the primary table name from column selections.

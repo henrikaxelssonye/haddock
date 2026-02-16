@@ -1,4 +1,10 @@
-import type { FieldSelection, Relationship, DuckDBValue, ColumnSelection } from '../types';
+import type {
+  FieldSelection,
+  Relationship,
+  DuckDBValue,
+  ColumnSelection,
+  BarChartConfig,
+} from '../types';
 import { RelationshipDetector } from './RelationshipDetector';
 import { getTablesFromSelections, getPrimaryTable } from '../types/canvas';
 
@@ -47,6 +53,33 @@ export class QueryBuilder {
       toTable,
       prioritizedRelationships
     );
+  }
+
+  private buildAggregationExpression(
+    config: BarChartConfig,
+    tableAliases: Map<string, string>
+  ): string {
+    if (config.aggregation === 'count') {
+      if (!config.measure) {
+        return 'COUNT(*)';
+      }
+      const measureAlias = tableAliases.get(config.measure.table);
+      if (!measureAlias) {
+        return 'COUNT(*)';
+      }
+      return `COUNT(${measureAlias}."${config.measure.column}")`;
+    }
+
+    if (!config.measure) {
+      return 'SUM(0)';
+    }
+
+    const measureAlias = tableAliases.get(config.measure.table);
+    if (!measureAlias) {
+      return 'SUM(0)';
+    }
+
+    return `${config.aggregation.toUpperCase()}(${measureAlias}."${config.measure.column}")`;
   }
 
   /**
@@ -233,6 +266,108 @@ LIMIT ${limit}`;
     return `SELECT DISTINCT t."${targetColumn}" FROM ${toSqlTableRef(targetTable)} t
 ${joinClause}
 ${whereClause}`;
+  }
+
+  buildBarChartQuery(
+    config: BarChartConfig,
+    selections: FieldSelection[],
+    relationships: Relationship[]
+  ): string {
+    const primaryTable = config.category.table;
+    const requiredTables = new Set<string>([primaryTable]);
+    if (config.measure) {
+      requiredTables.add(config.measure.table);
+    }
+
+    const tableAliases = new Map<string, string>();
+    tableAliases.set(primaryTable, 't');
+    let aliasCounter = 1;
+
+    const joins: string[] = [];
+    const joinedTables = new Set<string>([primaryTable]);
+
+    const tablesToJoin = new Set<string>([
+      ...Array.from(requiredTables),
+      ...selections.map((selection) => selection.table),
+    ]);
+
+    for (const tableName of tablesToJoin) {
+      if (tableName === primaryTable) {
+        continue;
+      }
+
+      const path = this.findPreferredPath(
+        primaryTable,
+        tableName,
+        relationships,
+        joinedTables
+      );
+      if (!path || path.length === 0) {
+        if (requiredTables.has(tableName)) {
+          return 'SELECT 1 WHERE FALSE';
+        }
+        continue;
+      }
+
+      let currentTable = primaryTable;
+      for (const rel of path) {
+        const nextTable = rel.fromTable === currentTable ? rel.toTable : rel.fromTable;
+
+        if (!joinedTables.has(nextTable)) {
+          const nextAlias = `t${aliasCounter++}`;
+          tableAliases.set(nextTable, nextAlias);
+
+          const currentAlias = tableAliases.get(currentTable)!;
+          const joinCol = rel.fromTable === currentTable ? rel.fromColumn : rel.toColumn;
+          const targetCol = rel.fromTable === currentTable ? rel.toColumn : rel.fromColumn;
+
+          joins.push(
+            `JOIN ${toSqlTableRef(nextTable)} ${nextAlias} ON ${currentAlias}."${joinCol}" = ${nextAlias}."${targetCol}"`
+          );
+          joinedTables.add(nextTable);
+        }
+
+        currentTable = nextTable;
+      }
+    }
+
+    const whereConditions: string[] = [];
+    const selectionsByTable = new Map<string, FieldSelection[]>();
+    for (const selection of selections) {
+      const existing = selectionsByTable.get(selection.table) || [];
+      existing.push(selection);
+      selectionsByTable.set(selection.table, existing);
+    }
+
+    for (const [tableName, tableSelections] of selectionsByTable) {
+      const alias = tableAliases.get(tableName);
+      if (!alias) {
+        continue;
+      }
+      whereConditions.push(this.buildWhereClauseWithAlias(tableSelections, alias));
+    }
+
+    const categoryAlias = tableAliases.get(config.category.table);
+    if (!categoryAlias) {
+      return 'SELECT 1 WHERE FALSE';
+    }
+
+    const aggregationExpression = this.buildAggregationExpression(config, tableAliases);
+    const whereClause =
+      whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    const limitClause =
+      config.limit && config.limit > 0 ? `LIMIT ${Math.floor(config.limit)}` : '';
+    const joinClause = joins.length > 0 ? joins.join('\n') : '';
+
+    return `SELECT
+  ${categoryAlias}."${config.category.column}" AS "__category",
+  ${aggregationExpression} AS "__value"
+FROM ${toSqlTableRef(primaryTable)} t
+${joinClause}
+${whereClause}
+GROUP BY ${categoryAlias}."${config.category.column}"
+ORDER BY "__value" DESC, "__category" ASC
+${limitClause}`.trim();
   }
 
   /**
