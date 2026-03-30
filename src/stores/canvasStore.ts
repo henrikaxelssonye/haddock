@@ -3,7 +3,9 @@ import type {
   CanvasObject,
   CanvasTableObject,
   CanvasBarChartObject,
+  CanvasPieChartObject,
   BarChartConfig,
+  PieChartConfig,
   CanvasObjectPosition,
   CanvasObjectSize,
   ColumnSelection,
@@ -28,6 +30,8 @@ interface CanvasState {
   addCompositeTableObject: (columnSelections: ColumnSelection[]) => void;
   addBarChartObject: (config: BarChartConfig) => void;
   updateBarChartConfig: (id: string, config: BarChartConfig) => void;
+  addPieChartObject: (config: PieChartConfig) => void;
+  updatePieChartConfig: (id: string, config: PieChartConfig) => void;
   removeObject: (id: string) => void;
   updatePosition: (id: string, position: CanvasObjectPosition) => void;
   updateSize: (id: string, size: CanvasObjectSize) => void;
@@ -136,6 +140,39 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     set((state) => ({
       objects: state.objects.map((obj) => {
         if (obj.id !== id || obj.type !== 'barChart') {
+          return obj;
+        }
+        return {
+          ...obj,
+          config: { ...config },
+        };
+      }),
+    }));
+  },
+
+  addPieChartObject: (config: PieChartConfig) => {
+    const { objects, nextZIndex } = get();
+    const offset = objects.length * STAGGER_OFFSET;
+
+    const newObject: CanvasPieChartObject = {
+      id: crypto.randomUUID(),
+      type: 'pieChart',
+      config: { ...config },
+      position: { x: 20 + offset, y: 20 + offset },
+      size: { width: DEFAULT_CHART_WIDTH, height: DEFAULT_CHART_HEIGHT },
+      zIndex: nextZIndex,
+    };
+
+    set({
+      objects: [...objects, newObject],
+      nextZIndex: nextZIndex + 1,
+    });
+  },
+
+  updatePieChartConfig: (id: string, config: PieChartConfig) => {
+    set((state) => ({
+      objects: state.objects.map((obj) => {
+        if (obj.id !== id || obj.type !== 'pieChart') {
           return obj;
         }
         return {

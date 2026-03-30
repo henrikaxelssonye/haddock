@@ -21,7 +21,7 @@ export function ReportCanvas() {
             <div className="text-center text-gray-400">
               <p className="text-lg font-medium">Empty canvas</p>
               <p className="text-sm mt-1">
-                Add tables or bar charts using the toolbar above
+                Add tables or charts using the toolbar above
               </p>
             </div>
           </div>

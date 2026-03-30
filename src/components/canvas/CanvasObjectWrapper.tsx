@@ -4,8 +4,10 @@ import type { CanvasObject, ColumnSelection } from '../../types';
 import { getTablesFromSelections } from '../../types/canvas';
 import { CanvasTable } from './CanvasTable';
 import { CanvasBarChart } from './CanvasBarChart';
+import { CanvasPieChart } from './CanvasPieChart';
 import { ColumnPicker } from './ColumnPicker';
 import { BarChartConfigEditor } from './BarChartConfigEditor';
+import { PieChartConfigEditor } from './PieChartConfigEditor';
 import { RelationshipDetector } from '../../engine/RelationshipDetector';
 
 const relationshipDetector = new RelationshipDetector();
@@ -37,6 +39,7 @@ export function CanvasObjectWrapper({ obj }: CanvasObjectWrapperProps) {
   const setSelectedColumns = useCanvasStore((s) => s.setSelectedColumns);
   const setColumnSelections = useCanvasStore((s) => s.setColumnSelections);
   const updateBarChartConfig = useCanvasStore((s) => s.updateBarChartConfig);
+  const updatePieChartConfig = useCanvasStore((s) => s.updatePieChartConfig);
   const bringToFront = useCanvasStore((s) => s.bringToFront);
 
   const [showEditor, setShowEditor] = useState(false);
@@ -61,14 +64,17 @@ export function CanvasObjectWrapper({ obj }: CanvasObjectWrapperProps) {
   }, [isTableObject, obj]);
 
   const displayTitle = useMemo(() => {
-    if (!isTableObject) {
+    if (obj.type === 'barChart') {
       return `Bar: ${obj.config.category.column}`;
+    }
+    if (obj.type === 'pieChart') {
+      return `Pie: ${obj.config.category.column}`;
     }
     const tables = getTablesFromSelections(obj.columnSelections);
     if (tables.length === 0) return 'Empty';
     if (tables.length === 1) return tables[0];
     return `${tables[0]} + ${tables.length - 1} more`;
-  }, [isTableObject, obj]);
+  }, [obj]);
 
   const handleDragPointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -192,12 +198,28 @@ export function CanvasObjectWrapper({ obj }: CanvasObjectWrapperProps) {
       );
     }
 
+    if (obj.type === 'barChart') {
+      return (
+        <div className="absolute top-8 right-0 z-50" onPointerDown={(e) => e.stopPropagation()}>
+          <BarChartConfigEditor
+            initialConfig={obj.config}
+            onSubmit={(config) => {
+              updateBarChartConfig(obj.id, config);
+              setShowEditor(false);
+            }}
+            onClose={() => setShowEditor(false)}
+            submitLabel="Apply"
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="absolute top-8 right-0 z-50" onPointerDown={(e) => e.stopPropagation()}>
-        <BarChartConfigEditor
+        <PieChartConfigEditor
           initialConfig={obj.config}
           onSubmit={(config) => {
-            updateBarChartConfig(obj.id, config);
+            updatePieChartConfig(obj.id, config);
             setShowEditor(false);
           }}
           onClose={() => setShowEditor(false)}
@@ -232,7 +254,7 @@ export function CanvasObjectWrapper({ obj }: CanvasObjectWrapperProps) {
               Composite
             </span>
           )}
-          {obj.type === 'barChart' && (
+          {(obj.type === 'barChart' || obj.type === 'pieChart') && (
             <span className="text-xs bg-slate-600 px-1.5 py-0.5 rounded">
               Chart
             </span>
@@ -267,10 +289,14 @@ export function CanvasObjectWrapper({ obj }: CanvasObjectWrapperProps) {
       </div>
 
       <div className="flex-1 min-h-0 overflow-hidden">
-        {obj.type === 'table' ? (
+        {obj.type === 'table' && (
           <CanvasTable columnSelections={obj.columnSelections} />
-        ) : (
+        )}
+        {obj.type === 'barChart' && (
           <CanvasBarChart config={obj.config} />
+        )}
+        {obj.type === 'pieChart' && (
+          <CanvasPieChart config={obj.config} />
         )}
       </div>
 

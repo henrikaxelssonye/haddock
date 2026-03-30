@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useSchemaStore, useCanvasStore } from '../../stores';
 import { CompositeColumnPicker } from './CompositeColumnPicker';
 import { BarChartConfigEditor } from './BarChartConfigEditor';
-import type { ColumnSelection, BarChartConfig, TableSchema } from '../../types';
+import { PieChartConfigEditor } from './PieChartConfigEditor';
+import type { ColumnSelection, BarChartConfig, PieChartConfig, TableSchema } from '../../types';
 
 function isNumericType(type: string): boolean {
   const normalized = type.toLowerCase();
@@ -14,6 +15,30 @@ function isNumericType(type: string): boolean {
     normalized.includes('float') ||
     normalized.includes('real')
   );
+}
+
+function getDefaultPieChartConfig(tables: TableSchema[]): PieChartConfig | null {
+  const firstTable = tables[0];
+  const firstColumn = firstTable?.columns[0];
+  if (!firstTable || !firstColumn) {
+    return null;
+  }
+
+  let measure: { table: string; column: string } | null = null;
+  for (const table of tables) {
+    const numericColumn = table.columns.find((column) => isNumericType(column.type));
+    if (numericColumn) {
+      measure = { table: table.name, column: numericColumn.name };
+      break;
+    }
+  }
+
+  return {
+    category: { table: firstTable.name, column: firstColumn.name },
+    measure,
+    aggregation: measure ? 'sum' : 'count',
+    limit: 10,
+  };
 }
 
 function getDefaultBarChartConfig(tables: TableSchema[]): BarChartConfig | null {
@@ -45,11 +70,14 @@ export function CanvasToolbar() {
   const addTableObject = useCanvasStore((s) => s.addTableObject);
   const addCompositeTableObject = useCanvasStore((s) => s.addCompositeTableObject);
   const addBarChartObject = useCanvasStore((s) => s.addBarChartObject);
+  const addPieChartObject = useCanvasStore((s) => s.addPieChartObject);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showColumnPicker, setShowColumnPicker] = useState(false);
   const [showBarChartEditor, setShowBarChartEditor] = useState(false);
+  const [showPieChartEditor, setShowPieChartEditor] = useState(false);
   const quickAddRef = useRef<HTMLDivElement>(null);
   const barChartRef = useRef<HTMLDivElement>(null);
+  const pieChartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -65,6 +93,16 @@ export function CanvasToolbar() {
     function handleClickOutside(e: MouseEvent) {
       if (barChartRef.current && !barChartRef.current.contains(e.target as Node)) {
         setShowBarChartEditor(false);
+      }
+    }
+    document.addEventListener('pointerdown', handleClickOutside);
+    return () => document.removeEventListener('pointerdown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (pieChartRef.current && !pieChartRef.current.contains(e.target as Node)) {
+        setShowPieChartEditor(false);
       }
     }
     document.addEventListener('pointerdown', handleClickOutside);
@@ -87,6 +125,7 @@ export function CanvasToolbar() {
   };
 
   const defaultBarChartConfig = getDefaultBarChartConfig(tables);
+  const defaultPieChartConfig = getDefaultPieChartConfig(tables);
 
   return (
     <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-200 shrink-0">
@@ -167,6 +206,46 @@ export function CanvasToolbar() {
                 setShowBarChartEditor(false);
               }}
               onClose={() => setShowBarChartEditor(false)}
+              submitLabel="Add"
+            />
+          </div>
+        )}
+      </div>
+
+      <div ref={pieChartRef} className="relative">
+        <button
+          onClick={() => setShowPieChartEditor((v) => !v)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-amber-600 rounded-md hover:bg-amber-700 disabled:bg-gray-300"
+          disabled={!defaultPieChartConfig}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
+            />
+          </svg>
+          Add Pie Chart
+        </button>
+        {showPieChartEditor && defaultPieChartConfig && (
+          <div
+            className="absolute top-full left-0 mt-1 z-50"
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <PieChartConfigEditor
+              initialConfig={defaultPieChartConfig}
+              onSubmit={(config) => {
+                addPieChartObject(config);
+                setShowPieChartEditor(false);
+              }}
+              onClose={() => setShowPieChartEditor(false)}
               submitLabel="Add"
             />
           </div>

@@ -4,3 +4,4 @@ export { useTableData } from './useTableData';
 export { useSelectionPropagation } from './useSelectionPropagation';
 export { useCompositeTableData } from './useCompositeTableData';
 export { useBarChartData } from './useBarChartData';
+export { usePieChartData } from './usePieChartData';

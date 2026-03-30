@@ -13,7 +13,8 @@ export interface ColumnSelection {
   column: string;
 }
 
-export type BarChartAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max';
+export type ChartAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max';
+export type BarChartAggregation = ChartAggregation;
 
 export interface BarChartColumnRef {
   table: string;
@@ -27,9 +28,21 @@ export interface BarChartConfig {
   limit: number | null;
 }
 
+export interface PieChartColumnRef {
+  table: string;
+  column: string;
+}
+
+export interface PieChartConfig {
+  category: PieChartColumnRef;
+  measure: PieChartColumnRef | null;
+  aggregation: ChartAggregation;
+  limit: number | null;
+}
+
 interface CanvasObjectBase {
   id: string;
-  type: 'table' | 'barChart';
+  type: 'table' | 'barChart' | 'pieChart';
   position: CanvasObjectPosition;
   size: CanvasObjectSize;
   zIndex: number;
@@ -49,7 +62,12 @@ export interface CanvasBarChartObject extends CanvasObjectBase {
   config: BarChartConfig;
 }
 
-export type CanvasObject = CanvasTableObject | CanvasBarChartObject;
+export interface CanvasPieChartObject extends CanvasObjectBase {
+  type: 'pieChart';
+  config: PieChartConfig;
+}
+
+export type CanvasObject = CanvasTableObject | CanvasBarChartObject | CanvasPieChartObject;
 
 /**
  * Get the primary table name from column selections.
